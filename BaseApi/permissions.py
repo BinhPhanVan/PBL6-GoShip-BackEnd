@@ -3,15 +3,17 @@ import jwt
 from django.conf import settings
 from GoShip import settings
 
-class AdminPermission(BasePermission):
+class IsAdminPermission(BasePermission):
     def has_permission(self, request, view):
-        token = request.headers.get('Token')
-        payload = jwt.decode(jwt=token, key=settings.SECRET_KEY, algorithms=['HS256'])
-        if payload['role'] == 3:
-            return True
-        return False
+        try:
+            if request.user.role == 3:
+                return True
+            return False
+        except Exception:
+            print(str(Exception))
+            return False
 
-class ShipperPermission(BasePermission):
+class IsShipperPermission(BasePermission):
     def has_permission(self, request, view):
         try:
             if request.user.role == 2:
@@ -20,10 +22,12 @@ class ShipperPermission(BasePermission):
         except Exception:
             print(str(Exception))
             return False
-class CustomerPermission(BasePermission):
+class IsCustomerPermission(BasePermission):
     def has_permission(self, request, view):
-        token = request.headers.get('Token')
-        payload = jwt.decode(jwt=token, key=settings.SECRET_KEY, algorithms=['HS256'])
-        if payload['role'] == 1:
-            return True
-        return False
+        try:
+            if request.user.role == 1:
+                return True
+            return False
+        except Exception:
+            print(str(Exception))
+            return False

@@ -3,13 +3,16 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from .serializers import RegisterSerializer, MyTokenObtainPairSerializer, ShipperSerializer, ConfirmShipperSerializer, LoginSerializer, CustomerSerializer
+from .serializers import RegisterSerializer, MyTokenObtainPairSerializer, ShipperSerializer, ConfirmShipperSerializer, \
+    LoginSerializer, CustomerSerializer
 from BaseApi.permissions import *
 from .models import Account, Address, Shipper, Customer
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.contrib.auth.hashers import check_password
 from rest_framework.generics import GenericAPIView
+
+
 # Create your views here.
 
 
@@ -34,7 +37,7 @@ class RegisterViewSet(viewsets.ViewSet, generics.CreateAPIView):
                 'access_token': str(token),
                 "details": "Đăng ký thành công!"
             }
-            return Response(response,  status=status.HTTP_202_ACCEPTED)
+            return Response(response, status=status.HTTP_202_ACCEPTED)
 
         return Response(
             {
@@ -86,10 +89,11 @@ class Logout(APIView):
 
 class ConfirmShipper(GenericAPIView):
     queryset = Shipper.objects.all()
-    permission_classes = [permissions.IsAuthenticated, ShipperPermission]
+    permission_classes = [permissions.IsAuthenticated, IsShipperPermission]
     serializer_class = ConfirmShipperSerializer
 
-    def post(self, request):
+    def put(self, request):
+        
         account = Account.objects.filter(
             phone_number=request.user.phone_number)
         if account.exists():
@@ -115,17 +119,12 @@ class ConfirmShipper(GenericAPIView):
         })
 
 
-class ShipperViewSet(viewsets.ViewSet,GenericAPIView):
+class ShipperViewSet(GenericAPIView):
     queryset = Shipper.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsShipperPermission]
     serializer_class = ShipperSerializer
 
-    def get_permissions(self):
-        if self.action == 'detail':
-            return [permissions.IsAuthenticated()]
-        return [permissions.AllowAny()]
-
-    @action(methods=['get'], detail=False, url_path='shipper-detail')
-    def detail(self, request):
+    def get(self, request):
         shipper = Shipper.objects.filter(
             account__phone_number=request.user.phone_number)
         if shipper.exists():
@@ -135,8 +134,44 @@ class ShipperViewSet(viewsets.ViewSet,GenericAPIView):
         })
 
 
-class CustomerViewSet(viewsets.ViewSet, generics.RetrieveAPIView):
+class CustomerViewSet(GenericAPIView):
     queryset = Customer.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsCustomerPermission]
     serializer_class = CustomerSerializer
-    permission_classes = [permissions.IsAuthenticated,
-                          CustomerPermission, AdminPermission]
+
+    def get(self, request):
+        customer = Customer.objects.filter(
+            account__phone_number=request.user.phone_number)
+        if customer.exists():
+            return Response(CustomerSerializer(customer.first()).data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={
+            'detail': 'Dữ liệu không hợp lệ!'
+        })
+
+    def patch(self,request):
+        customer = Customer.objects.filter(account__phone_number = request.user.phone_number)
+        address = request.data.get('address')
+        if customer.exists():
+            if customer.first().address is None:
+                address = Address.objects.create(**request.data.get('address'))
+                customer.update(address =address)
+            else: 
+                Address.objects.filter(id = customer.first().address.id).update(
+                    address_notes=address.get('address_notes'),
+                    latitude=address.get('latitude'),
+                    longitude=address.get('longitude'),
+                ) 
+            customer.update(
+                name = request.data.get('name'),
+                gender = request.data.get('gender'),
+                avatar_url = request.data.get('avatar_url'),
+                distance_view = request.data.get('distance_view'),
+            )
+            return Response(CustomerSerializer(customer.first()).data, status=status.HTTP_200_OK)
+        return Response(data= {
+            "detail": "Truy vấn không hợp lệ!"
+        }, status = status.HTTP_400_BAD_REQUEST)
+
+
+
+

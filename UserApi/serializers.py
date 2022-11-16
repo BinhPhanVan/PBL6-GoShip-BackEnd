@@ -54,13 +54,13 @@ class CustomerSerializer(serializers.ModelSerializer):
     address = AddressSerializer(required=True)
     class Meta:
         model = Customer
-        fields = '__all__'
+        fields = ['name', 'address', 'gender', 'avatar_url', 'distance_view']
 
 class ConfirmShipperSerializer(serializers.ModelSerializer):
     address = AddressSerializer(required=True)
     class Meta:
         model = Shipper
-        fields = ['gender', 'address', 'name', 'url_identification_top',
+        fields = ['name', 'address', 'gender', 'url_identification_top',
                   'url_identification_back', 'identification_info', 'url_face_video']
 
 class LoginSerializer(serializers.Serializer):

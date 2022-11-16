@@ -6,13 +6,14 @@ from .views import *
 app_name = "UserApi"
 router = routers.DefaultRouter()
 router.register(r'register', RegisterViewSet, basename='register')
-router.register(r'customer', CustomerViewSet, basename='customer-detail')
-router.register(r'shipper', ShipperViewSet, basename='user-detail')
+
 urlpatterns = [
     path('api/token/', csrf_exempt(MyTokenObtainPairView.as_view()), name='token_obtain_pair'),
     path('api/token/refresh/', csrf_exempt(TokenRefreshView.as_view()), name='token_refresh'),
     path("login/",csrf_exempt(LoginView.as_view()), name="login"),
     path("confirm-shipper/", ConfirmShipper.as_view(), name="confirm"),
+    path("shipper/detail/", ShipperViewSet.as_view(), name="shipper-detail"),
+    path("customer/detail/", CustomerViewSet.as_view(), name="customer-detail"),
     path("logout/", Logout.as_view(), name="logout")
 ]
 urlpatterns += router.urls
