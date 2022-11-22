@@ -59,12 +59,16 @@ class LoginView(GenericAPIView):
             )
             if account:
                 refresh = MyTokenObtainPairSerializer.get_token(account)
+                print(account)
                 data = {
+                    'phone_number': RegisterSerializer(account).data['phone_number'],
+                    'role': RegisterSerializer(account).data['role'],
                     'account': RegisterSerializer(account).data,
                     'refresh_token': str(refresh),
                     'access_token': str(refresh.access_token),
                     'access_expires': int(settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds()),
-                    'refresh_expires': int(settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds())
+                    'refresh_expires': int(settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds()),
+                    'details': "Đăng nhập thành công !"
                 }
                 return Response(data, status=status.HTTP_200_OK)
             return Response({
