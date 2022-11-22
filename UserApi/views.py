@@ -30,11 +30,17 @@ class RegisterViewSet(viewsets.ViewSet, generics.CreateAPIView):
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             account = serializer.save()
+            authenticate(
+                request,
+                username=request.data.get('phone_number'),
+                password=request.data.get('password')
+            )
             token = MyTokenObtainPairSerializer.get_token(account)
             response = {
                 'role': account.role,
                 'phone_number': account.phone_number,
                 'access_token': str(token),
+                'refresh_token': str(MyTokenObtainPairSerializer.get_token(account)),
                 "details": "Đăng ký thành công!"
             }
             return Response(response, status=status.HTTP_202_ACCEPTED)
