@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'AccountApi',
     'UserApi',
     'BaseApi',
+    'OrderApi',
     
     #tools
     'rest_framework',
@@ -182,7 +183,7 @@ AUTH_USER_MODEL = 'AccountApi.Account'
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': False,
     'UPDATE_LAST_LOGIN': False,

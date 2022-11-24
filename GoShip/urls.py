@@ -31,6 +31,7 @@ schema_view = swagger_get_schema_view(
     permission_classes=(permissions.AllowAny,),
     patterns=[
         path('api/v1/', include('UserApi.urls')),
+        path('api/v1/', include('OrderApi.urls')),
         path(r'api-auth/', include('rest_framework.urls')),
 
     ]
@@ -48,6 +49,7 @@ urlpatterns = [
             schema_view.with_ui('redoc', cache_timeout=0),
             name='schema-redoc'),
     path('api/v1/', include('UserApi.urls')),
+    path('api/v1/', include('OrderApi.urls')),
     path('api-auth/', include('rest_framework.urls')),
 
 ]
