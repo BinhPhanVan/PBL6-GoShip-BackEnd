@@ -6,6 +6,7 @@ from GoShip import settings
 class IsAdminPermission(BasePermission):
     def has_permission(self, request, view):
         try:
+            print(request.user.role)
             if request.user.role == 3:
                 return True
             return False

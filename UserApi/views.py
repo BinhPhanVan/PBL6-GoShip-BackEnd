@@ -41,7 +41,7 @@ class RegisterViewSet(viewsets.ViewSet, generics.CreateAPIView):
                 'phone_number': account.phone_number,
                 'access_token': str(token),
                 'refresh_token': str(MyTokenObtainPairSerializer.get_token(account)),
-                "details": "Đăng ký thành công!"
+                "detail": "Đăng ký thành công!"
             }
             return Response(response, status=status.HTTP_202_ACCEPTED)
 
@@ -58,6 +58,7 @@ class LoginView(GenericAPIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
+            logout(request)
             account = authenticate(
                 request,
                 username=serializer.validated_data['phone_number'],
@@ -69,12 +70,11 @@ class LoginView(GenericAPIView):
                 data = {
                     'phone_number': RegisterSerializer(account).data['phone_number'],
                     'role': RegisterSerializer(account).data['role'],
-                    'account': RegisterSerializer(account).data,
                     'refresh_token': str(refresh),
                     'access_token': str(refresh.access_token),
                     'access_expires': int(settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds()),
                     'refresh_expires': int(settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds()),
-                    'details': "Đăng nhập thành công !"
+                    'detail': "Đăng nhập thành công !"
                 }
                 return Response(data, status=status.HTTP_200_OK)
             return Response({
@@ -90,11 +90,11 @@ class LoginView(GenericAPIView):
 
 
 class Logout(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         logout(request)
-        return Response({"details": "Đăng xuất thành công!"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"detail": "Đăng xuất thành công!"}, status=status.HTTP_204_NO_CONTENT)
 
 
 class ConfirmShipper(GenericAPIView):
@@ -146,7 +146,7 @@ class ShipperViewSet(GenericAPIView):
 
 class CustomerViewSet(GenericAPIView):
     queryset = Customer.objects.all()
-    permission_classes = [permissions.IsAuthenticated, IsCustomerPermission]
+    permission_classes = [IsCustomerPermission]
     serializer_class = CustomerSerializer
 
     def get(self, request):
@@ -181,7 +181,6 @@ class CustomerViewSet(GenericAPIView):
         return Response(data= {
             "detail": "Truy vấn không hợp lệ!"
         }, status = status.HTTP_400_BAD_REQUEST)
-
 
 
 
