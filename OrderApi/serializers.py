@@ -33,7 +33,6 @@ class StatusSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     address_start = AddressSerializer(required=True)
     address_end = AddressSerializer(required=True)
-    status = StatusSerializer(required=True)
     class Meta:
         model= Order
         fields = '__all__' 

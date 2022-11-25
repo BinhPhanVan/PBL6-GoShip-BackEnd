@@ -27,10 +27,7 @@ class CategoryView(viewsets.ModelViewSet,):
         if self.action == 'list':
             return [permissions.AllowAny()]
         return [IsAdminPermission()]
-    def get_permissions(self):
-        if self.action == 'list':
-            return [permissions.AllowAny()]
-        return [IsAdminPermission()]
+
 
 class StatusView(viewsets.ViewSet,
                 generics.ListCreateAPIView,
@@ -41,7 +38,10 @@ class StatusView(viewsets.ViewSet,
     queryset = Status.objects.all()
     permission_classes = [IsAdminPermission]
     serializer_class = StatusSerializer
-
+    def get_permissions(self):
+        if self.action == 'list':
+            return [permissions.AllowAny()]
+        return [IsAdminPermission()]
 
 class OrderView(GenericAPIView):
     queryset = Order.objects.all()
