@@ -2,7 +2,6 @@ from django.shortcuts import render
 from rest_framework import generics, viewsets
 from rest_framework.response import Response
 from OrderApi import views
-from UserApi.serializers import AddressSerializer
 from rest_framework.decorators import action
 from .models import *
 from .serializers import *
@@ -15,7 +14,7 @@ from rest_framework.decorators import (
     authentication_classes,
     permission_classes,
 )
-
+from drf_yasg.utils import swagger_auto_schema
 from numpy import sin, cos, arccos, pi, round
 
 def rad2deg(radians):
@@ -45,6 +44,7 @@ def getDistanceBetweenPointsNew(latitude1, longitude1, latitude2, longitude2, un
 
 
 # Create your views here.
+@swagger_auto_schema(methods=['post'], request_body=GetDistanceSerializer)
 @api_view(["POST"])
 @authentication_classes([])
 @permission_classes([])
@@ -66,6 +66,7 @@ def get_distance(request):
             'distance': abc
         }, status=status.HTTP_202_ACCEPTED)
 
+@swagger_auto_schema(methods=['post'], request_body=GetPriceSerializer)
 @api_view(["POST"])
 @authentication_classes([])
 @permission_classes([])

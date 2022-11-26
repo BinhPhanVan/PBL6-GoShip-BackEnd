@@ -11,15 +11,14 @@ pipeline {
                 script {
                     try {
                         sh "mv docker.env .env"
-                        echo "Hello"
+                        echo "Done read enviroment"
                     }
                     catch (err) {
                         echo err.getMessage()
                     }
                 }
                 sh "pip3 install -r requirements.txt"
-                echo  "da cai xong"
-                // sh "pytest --disable-warnings"
+                echo  "Done install"
             }
         }
 
