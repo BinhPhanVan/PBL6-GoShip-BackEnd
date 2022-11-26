@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'UserApi',
     'BaseApi',
     'OrderApi',
+    'PriceApi',
     
     #tools
     'rest_framework',
