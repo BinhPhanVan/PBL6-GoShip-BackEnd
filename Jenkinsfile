@@ -27,8 +27,10 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh "docker rm orp-container-web-1 -f"
+                        sh "docker rm pbl6-goship-backend_web_1 -f"
+                        sh "docker rmi pbl6-goship-backend_web -f"
                         sh 'docker rm /$(docker ps --filter status=exited -q)'
+
                     }
                     catch (err) {
                         echo err.getMessage()
