@@ -182,5 +182,5 @@ class CustomerViewSet(GenericAPIView):
             "detail": "Truy vấn không hợp lệ!"
         }, status = status.HTTP_400_BAD_REQUEST)
 
-
-
+@
+def update_device_token():

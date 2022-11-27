@@ -13,6 +13,7 @@ class Customer(models.Model):
     gender = models.IntegerField(default=0, choices=list_gender)
     address = models.OneToOneField(Address, related_name='Address', on_delete=models.CASCADE, null =True)
     avatar_url = models.CharField(null= True, max_length=255, blank=True)
+    birth_date = models.DateField(null= True, blank=True)
     distance_view= models.IntegerField(default=10)
     class Meta:
         db_table = 'Customer'
@@ -33,13 +34,13 @@ class Shipper(models.Model):
         (2,'Female')
     )
     gender = models.IntegerField(default=0, choices=list_gender)
+    avatar_url = models.CharField(null= True, max_length=255, blank=True)
+    birth_date = models.DateField(null= True, blank=True)
     address = models.OneToOneField(
         Address, 
         on_delete=models.CASCADE,
         null =True,
         )
-    latitude = models.CharField(max_length=255, null=True, blank= True)
-    longitude = models.CharField(max_length=255, null=True, blank= True)
     list_confirmed =(
         (0,'UnConfirm'),
         (1,'Confirming'),
