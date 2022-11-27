@@ -67,3 +67,6 @@ class LoginSerializer(serializers.Serializer):
     phone_number = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
 
+
+class UpdateDeviceToken(serializers.Serializer):
+    token_device = serializers.CharField(required=True)

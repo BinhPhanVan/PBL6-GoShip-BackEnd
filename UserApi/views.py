@@ -3,15 +3,13 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from .serializers import RegisterSerializer, MyTokenObtainPairSerializer, ShipperSerializer, ConfirmShipperSerializer, \
-    LoginSerializer, CustomerSerializer
+from .serializers import *
 from BaseApi.permissions import *
 from .models import Account, Address, Shipper, Customer
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.contrib.auth.hashers import check_password
 from rest_framework.generics import GenericAPIView
-
 
 # Create your views here.
 
@@ -22,7 +20,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 class RegisterViewSet(viewsets.ViewSet, generics.CreateAPIView):
     queryset = Account.objects.all()
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (IsCustomerPermission, IsShipperPermission)
     serializer_class = RegisterSerializer
 
     def create(self, request, *args, **kwargs):
@@ -103,7 +101,7 @@ class ConfirmShipper(GenericAPIView):
     serializer_class = ConfirmShipperSerializer
 
     def put(self, request):
-        
+
         account = Account.objects.filter(
             phone_number=request.user.phone_number)
         if account.exists():
@@ -158,29 +156,46 @@ class CustomerViewSet(GenericAPIView):
             'detail': 'Dữ liệu không hợp lệ!'
         })
 
-    def patch(self,request):
-        customer = Customer.objects.filter(account__phone_number = request.user.phone_number)
+    def patch(self, request):
+        customer = Customer.objects.filter(
+            account__phone_number=request.user.phone_number)
         address = request.data.get('address')
         if customer.exists():
             if customer.first().address is None:
                 address = Address.objects.create(**request.data.get('address'))
-                customer.update(address =address)
-            else: 
-                Address.objects.filter(id = customer.first().address.id).update(
+                customer.update(address=address)
+            else:
+                Address.objects.filter(id=customer.first().address.id).update(
                     address_notes=address.get('address_notes'),
                     latitude=address.get('latitude'),
                     longitude=address.get('longitude'),
-                ) 
+                )
             customer.update(
-                name = request.data.get('name'),
-                gender = request.data.get('gender'),
-                avatar_url = request.data.get('avatar_url'),
-                distance_view = request.data.get('distance_view'),
+                name=request.data.get('name'),
+                gender=request.data.get('gender'),
+                avatar_url=request.data.get('avatar_url'),
+                distance_view=request.data.get('distance_view'),
             )
             return Response(CustomerSerializer(customer.first()).data, status=status.HTTP_200_OK)
-        return Response(data= {
+        return Response(data={
             "detail": "Truy vấn không hợp lệ!"
-        }, status = status.HTTP_400_BAD_REQUEST)
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 
+class UpdateDeviceTokenView(GenericAPIView):
+    serializer_class = UpdateDeviceToken
+    queryset = Account.objects.all()
+    permission_classes = [permissions.AllowAny]
 
+    def post(self, request, *args, **kwargs):
+        token_device = request.data.get('token_device')
+        account = Account.objects.filter(
+            phone_number=request.user.phone_number)
+        print(request.user.phone_number)
+
+        if account.exists():
+            account.update(token_device=token_device)
+            return Response(status=status.HTTP_200_OK)
+        return Response(
+            data={"detail": "Dữ liệu không hợp lệ!"},
+            status=status.HTTp_400_BAD_REQUEST)

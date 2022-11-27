@@ -14,6 +14,7 @@ urlpatterns = [
     path("confirm-shipper/", ConfirmShipper.as_view(), name="confirm"),
     path("shipper/detail/", ShipperViewSet.as_view(), name="shipper-detail"),
     path("customer/detail/", CustomerViewSet.as_view(), name="customer-detail"),
-    path("logout/", Logout.as_view(), name="logout")
+    path("logout/", Logout.as_view(), name="logout"),
+    path("update-device-token/", UpdateDeviceTokenView.as_view(), name="update-device-token")
 ]
 urlpatterns += router.urls
