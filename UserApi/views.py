@@ -199,3 +199,45 @@ class UpdateDeviceTokenView(GenericAPIView):
         return Response(
             data={"detail": "Dữ liệu không hợp lệ!"},
             status=status.HTTp_400_BAD_REQUEST)
+def check_pass(password):
+    if len(password) < 8:
+        return False
+    return True
+
+def same_pass(new_password, repeat_password):
+    if new_password != repeat_password:
+        return False
+    return True
+
+class ChangePassword(GenericAPIView):
+    serializer_class = ChangePassWordSerializer
+    queryset = Account.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = ChangePassWordSerializer(data=request.data)
+        if serializer.is_valid():
+            old_password = request.data.get("old_password")
+            new_password = request.data.get("new_password")
+            repeat_password = request.data.get("repeat_password")
+            if request.user.check_password(old_password):
+                if check_pass(new_password):
+                    if same_pass(new_password, repeat_password):
+                        request.user.set_password(new_password)
+                        request.user.save()
+                        return Response({
+                        "detail": "Đổi mật khẩu thành công!",}, 
+                            status=status.HTTP_201_CREATED)
+                    return Response({
+                        "detail": "Mật khẩu mới không trùng khớp!",}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                        "detail": "Mật khẩu tối thiểu 8 kí tự!",},
+                    status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                        "detail": "Mật khẩu cũ không chính xác!",},
+                    status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+                        "detail": "Dữ liệu không hợp lệ!",},
+                    status=status.HTTP_400_BAD_REQUEST)
+                    
