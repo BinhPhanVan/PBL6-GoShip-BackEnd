@@ -35,6 +35,7 @@ ALLOWED_HOSTS = ['167.71.197.115', '*']
 
 INSTALLED_APPS = [
     #system
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -225,4 +226,24 @@ SWAGGER_SETTINGS = {
             'in': 'header'
       }
    }
+}
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+JAZZMIN_SETTINGS = {
+    "site_title": "GOSHIP",
+    "site_header": "GOSHIP",
+    "site_brand": "GOSHIP",
+    "site_logo": "admin/img/logo/go_ship_2.png",
+    "login_logo":"admin/img/logo/go_ship.png",
+    "site_logo_classes": "img-circle",
+    "welcome_sign": "WELCOME TO GOSHIP",
+    "copyright": "Bản quyền thuộc về BCHTQ",
+    "topmenu_links": [
+        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Customer", "url": "https://www.facebook.com/malumdola/", "new_window": True},
+    ],
+    "show_sidebar": True,
 }
