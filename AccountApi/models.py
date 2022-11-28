@@ -5,6 +5,7 @@ class CustomUserManager(BaseUserManager):
     def create_user(
         self, phone_number, password=None,role = 1 , is_staff=False, is_superuser=False, is_active=True
     ):
+        from UserApi.models import Admin
         if not phone_number:
             raise ValueError("User must have an phone_number address")
         if not password:
@@ -23,6 +24,7 @@ class CustomUserManager(BaseUserManager):
         return user_obj
     
     def create_superuser(self, phone_number, password, **extra_fields):
+        from UserApi.models import Admin
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
@@ -31,7 +33,10 @@ class CustomUserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError(_('Superuser must have is_superuser=True.'))
         role = 3
-        return self.create_user(phone_number, password,role = role, **extra_fields)
+        account= self.create_user(phone_number, password,role = role, **extra_fields)
+        admin =  Admin(account = account)
+        admin.save()
+        return account
     
 
 class Account(AbstractBaseUser, PermissionsMixin):

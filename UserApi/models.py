@@ -49,12 +49,28 @@ class Shipper(models.Model):
     ) 
     url_identification_top = models.CharField(max_length=255,null=True)
     url_identification_back = models.CharField(max_length=255,null =True)
-    identification_info = models.CharField(max_length=500, null=True, blank =True)
+    identification_info = models.TextField(max_length=500, null=True, blank =True)
     url_face_video = models.CharField(max_length=255,null = True)
     confirmed = models.IntegerField(default=0, choices=list_confirmed)
     distance_receive= models.IntegerField(default=10)
     class Meta:
         db_table = 'Shipper'
+
+    def __str__(self):
+        return self.name
+
+class Admin(models.Model):
+    account = models.OneToOneField(Account, on_delete=models.CASCADE, primary_key=True)
+    name = models.CharField(max_length=100, default = 'Admin')
+    list_gender=(
+        (0,'None'),
+        (1,'Male'),
+        (2,'Female')
+    )
+    gender = models.IntegerField(default=0, choices=list_gender)
+    birth_date = models.DateField(null= True, blank=True)
+    class Meta:
+        db_table = 'Admin'
 
     def __str__(self):
         return self.name

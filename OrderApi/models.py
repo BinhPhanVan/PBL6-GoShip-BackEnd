@@ -48,4 +48,5 @@ class Order(models.Model):
     address_end = models.OneToOneField(Address,  on_delete=models.CASCADE, related_name='address_end')
     status = models.ForeignKey(Status, on_delete=models.CASCADE)
     img_order = models.CharField(max_length=255, null=True, blank=True)
-    
+    def __str__(self):
+        return 'Đơn yêu cầu giao hàng số ' +str(self.id)
