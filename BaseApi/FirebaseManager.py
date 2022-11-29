@@ -32,7 +32,7 @@ def getDistanceBetweenPointsNew(latitude1, longitude1, latitude2, longitude2, un
 
 
 cred = credentials.Certificate(
-    "BaseApi\\serviceAccountKey.json")
+    "BaseApi/serviceAccountKey.json")
 firebase_admin.initialize_app(
     cred, {'databaseURL': 'https://pbl6-goship-default-rtdb.asia-southeast1.firebasedatabase.app/'})
 
@@ -68,5 +68,6 @@ def sendNotificationToShipper(lat, long, order_id):
             shipper = shipper.first()
             if distance <= shipper.distance_receive:
                 tokens.append(str(shipper.account.token_device))
-    
-    sendPush("Có đơn hàng gần đây", "Ấn vào để nhận đơn ngay!", tokens, dataObject={"order_id": str(order_id)})
+
+    sendPush("Có đơn hàng gần đây", "Ấn vào để nhận đơn ngay!",
+             tokens, dataObject={"order_id": str(order_id)})
