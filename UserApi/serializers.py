@@ -66,8 +66,7 @@ class ConfirmShipperSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     phone_number = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
-
-
+    
 class UpdateDeviceToken(serializers.Serializer):
     token_device = serializers.CharField(required=True)
 
@@ -75,4 +74,19 @@ class ChangePassWordSerializer(serializers.Serializer):
     old_password = serializers.CharField(max_length=128)
     new_password = serializers.CharField(max_length=128)
     repeat_password = serializers.CharField(max_length=128)
+
+class DetailCustomerSerializer(serializers.ModelSerializer):
+    address = AddressSerializer(required=True)
+    class Meta:
+        model = Customer
+        fields = '__all__'
+
+class DetailShipperSerializer(serializers.ModelSerializer):
+    address = AddressSerializer(required=True)
+    class Meta:
+        model = Customer
+        fields = '__all__'   
+
+class PhoneNumberSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=20)
 
