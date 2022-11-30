@@ -85,3 +85,20 @@ class OrderView(GenericAPIView):
         return Response(data={
             'detail': 'Dữ liệu không hợp lệ!',
         }, status=status.HTTP_400_BAD_REQUEST)
+
+class HistoryOrderView(GenericAPIView):
+    queryset = Order.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsCustomerPermission]
+    serializer_class = [HistoryOrderSerializer, OrderListSerializer]
+    def post(self, request):
+        serializer = HistoryOrderSerializer(data=request.data)
+        if serializer.is_valid():
+            phone_number = request.data.get('phone_number')
+            order = Order.objects.filter(customer__account__phone_number=phone_number)
+            serializer = OrderListSerializer(order, many=True)
+            return Response(data={
+            'detail': serializer.data,
+        }, status=status.HTTP_200_OK)
+        return Response(data={
+            'detail': "Thông tin không chính xác!",
+        }, status=status.HTTP_400_BAD_REQUEST)
