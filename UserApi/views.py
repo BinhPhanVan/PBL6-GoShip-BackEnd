@@ -199,15 +199,19 @@ class UpdateDeviceTokenView(GenericAPIView):
         return Response(
             data={"detail": "Dữ liệu không hợp lệ!"},
             status=status.HTTp_400_BAD_REQUEST)
+
+
 def check_pass(password):
     if len(password) < 8:
         return False
     return True
 
+
 def same_pass(new_password, repeat_password):
     if new_password != repeat_password:
         return False
     return True
+
 
 class ChangePassword(GenericAPIView):
     serializer_class = ChangePassWordSerializer
@@ -226,18 +230,42 @@ class ChangePassword(GenericAPIView):
                         request.user.set_password(new_password)
                         request.user.save()
                         return Response({
-                        "detail": "Đổi mật khẩu thành công!",}, 
+                        "detail": "Đổi mật khẩu thành công!", },
                             status=status.HTTP_201_CREATED)
                     return Response({
-                        "detail": "Mật khẩu mới không trùng khớp!",}, 
+                        "detail": "Mật khẩu mới không trùng khớp!", },
                             status=status.HTTP_400_BAD_REQUEST)
                 return Response({
-                        "detail": "Mật khẩu tối thiểu 8 kí tự!",},
+                        "detail": "Mật khẩu tối thiểu 8 kí tự!", },
                     status=status.HTTP_400_BAD_REQUEST)
             return Response({
-                        "detail": "Mật khẩu cũ không chính xác!",},
+                        "detail": "Mật khẩu cũ không chính xác!", },
                     status=status.HTTP_400_BAD_REQUEST)
         return Response({
-                        "detail": "Dữ liệu không hợp lệ!",},
+                        "detail": "Dữ liệu không hợp lệ!", },
                     status=status.HTTP_400_BAD_REQUEST)
-                    
+
+
+class DetailView(GenericAPIView):
+    serializer_class = PhoneNumberSerializer
+    queryset = Account.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        phone_number = request.data.get('phone_number')
+        account = Account.objects.filter(phone_number=phone_number)
+        if account.exists():
+            if account.first().role == 1:
+                customer = Customer.objects.filter(
+                    account__phone_number=account.first().phone_number)
+                return Response(data={
+                    "data": DetailCustomerSerializer(customer.first()).data
+                })
+            elif account.first().role == 2:
+                shipper=Shipper.objects.filter(
+                    account__phone_number=account.first().phone_number)
+                return Response(data={
+                    "data": DetailShipperSerializer(shipper.first()).data
+                })
+        return Response(data= {
+            "detail": "Số điện thoại không hợp lệ!"
+        })
