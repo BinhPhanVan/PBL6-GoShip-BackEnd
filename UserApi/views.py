@@ -20,7 +20,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 class RegisterViewSet(viewsets.ViewSet, generics.CreateAPIView):
     queryset = Account.objects.all()
-    permission_classes = (IsCustomerPermission, IsShipperPermission)
+    permission_classes = (permissions.AllowAny,)
     serializer_class = RegisterSerializer
 
     def create(self, request, *args, **kwargs):
