@@ -59,3 +59,34 @@ class OrderSerializer(serializers.ModelSerializer):
                 'read_only': True
             },
         }
+
+class OrderListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Order
+        fields = '__all__'
+        extra_kwargs = {
+            'id': {
+                'read_only': True
+            },
+            'customer': {
+                'read_only': True
+            },
+            'created_at': {
+                'read_only': True
+            },
+            'updated_at': {
+                'read_only': True
+            },
+            'status': {
+                'read_only': True
+            },
+            'shipper': {
+                'read_only': True
+            },
+            'cost': {
+                'read_only': True
+            },
+        } 
+
+class HistoryOrderSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(required=True)
