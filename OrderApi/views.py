@@ -7,7 +7,7 @@ from .models import *
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
 import BaseApi.FirebaseManager as firebase_database
-
+from .paginator import BasePagination
 
 class PaymentView(viewsets.ViewSet,
                   generics.ListCreateAPIView,
@@ -54,7 +54,14 @@ class OrderView(GenericAPIView):
     queryset = Order.objects.all()
     permission_classes = [permissions.IsAuthenticated, IsCustomerPermission]
     serializer_class = OrderSerializer
+    pagination_class = BasePagination
 
+    def get(self, request):
+        phone_number = request.user.phone_number
+        order = Order.objects.filter(customer__account__phone_number=phone_number)
+        serializer = OrderSerializer(order, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+            
     def post(self, request):
         serializer = OrderSerializer(data=request.data)
         if serializer.is_valid():
@@ -86,19 +93,5 @@ class OrderView(GenericAPIView):
             'detail': 'Dữ liệu không hợp lệ!',
         }, status=status.HTTP_400_BAD_REQUEST)
 
-class HistoryOrderView(GenericAPIView):
-    queryset = Order.objects.all()
-    permission_classes = [permissions.IsAuthenticated, IsCustomerPermission]
-    serializer_class = [HistoryOrderSerializer, OrderListSerializer]
-    def post(self, request):
-        serializer = HistoryOrderSerializer(data=request.data)
-        if serializer.is_valid():
-            phone_number = request.data.get('phone_number')
-            order = Order.objects.filter(customer__account__phone_number=phone_number)
-            serializer = OrderListSerializer(order, many=True)
-            return Response(data={
-            'detail': serializer.data,
-        }, status=status.HTTP_200_OK)
-        return Response(data={
-            'detail': "Thông tin không chính xác!",
-        }, status=status.HTTP_400_BAD_REQUEST)
+
+
