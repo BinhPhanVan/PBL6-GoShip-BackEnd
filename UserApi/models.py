@@ -12,7 +12,7 @@ class Customer(models.Model):
     )
     gender = models.IntegerField(default=0, choices=list_gender)
     address = models.OneToOneField(Address, related_name='Address', on_delete=models.CASCADE, null =True)
-    avatar_url = models.CharField(null= True, max_length=255, blank=True)
+    avatar_url = models.CharField(null= True, max_length=255, blank=True,  default = '/static/admin/img/logo/user.png')
     birth_date = models.DateField(null= True, blank=True)
     distance_view= models.IntegerField(default=10)
     class Meta:
@@ -34,7 +34,7 @@ class Shipper(models.Model):
         (2,'Female')
     )
     gender = models.IntegerField(default=0, choices=list_gender)
-    avatar_url = models.CharField(null= True, max_length=255, blank=True)
+    avatar_url = models.CharField(null= True, max_length=255, blank=True, default = '/static/admin/img/logo/go_ship.png')
     birth_date = models.DateField(null= True, blank=True)
     address = models.OneToOneField(
         Address, 
