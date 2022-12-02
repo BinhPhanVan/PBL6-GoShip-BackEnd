@@ -62,13 +62,13 @@ def get_distance(request):
         response = {
             "status": "error",
             "data": None,
-            "message": "Dữ liệu không hợp lệ!"
+            "detail": "Dữ liệu không hợp lệ!"
         }
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
     response = {
         "status": "success",
         "data": distance,
-        "message": None
+        "detail": None
     }
     return Response(response, status=status.HTTP_200_OK)
 
@@ -99,7 +99,7 @@ def get_price(request, *args, **kwargs):
         response = {
             "status": "error",
             "data": None,
-            "message": "Dữ liệu không hợp lệ!"
+            "detail": "Dữ liệu không hợp lệ!"
         }
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
     response = {
@@ -111,7 +111,7 @@ def get_price(request, *args, **kwargs):
             'extra_price': extra_price,
             'total': money + extra_price
         },
-        "message": None
+        "detail": None
     }
     return Response(response, status=status.HTTP_200_OK)
     

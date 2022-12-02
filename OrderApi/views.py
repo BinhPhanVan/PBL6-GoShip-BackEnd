@@ -72,7 +72,7 @@ class OrderView(GenericAPIView):
         response = {
             "status": "success",
             "data": serializer.data,
-            "message": None
+            "detail": None
         }
         return Response(response, status=status.HTTP_200_OK)
 
@@ -104,13 +104,13 @@ class OrderView(GenericAPIView):
             response = {
                 "status": "success",
                 "data":  OrderSerializer(order).data,
-                "message": None
+                "detail": None
             }
             return Response(response, status=status.HTTP_200_OK)
         response = {
             "status": "error",
             "data": None,
-            "message": "Dữ liệu không hợp lệ!",
+            "detail": "Dữ liệu không hợp lệ!",
         }
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
@@ -127,13 +127,13 @@ class OrderDetailView(GenericAPIView):
             response = {
                 "status": "success",
                 "data":  OrderDetailSerializer(order).data,
-                "message": None
+                "detail": None
             }
             return Response(response, status=status.HTTP_200_OK)
         response = {
             "status": "error",
             "data": None,
-            "message": "Đơn hàng không tồn tại!"
+            "detail": "Đơn hàng không tồn tại!"
         }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -155,18 +155,18 @@ class OrderReceiveView(GenericAPIView):
                 response = {
                     "status": "success",
                     "data":  OrderSerializer(order).data,
-                    "message": None
+                    "detail": None
                 }
             else:
                 response = {
-                    "status": "success",
+                    "status": "error",
                     "data": None,
-                    "message": "Đơn hàng đã có người nhận!"
+                    "detail": "Đơn hàng đã có người nhận!"
                 }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         response = {
             "status": "error",
             "data": None,
-            "message": "Đơn hàng không tồn tại!"
+            "detail": "Đơn hàng không tồn tại!"
         }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)

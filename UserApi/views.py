@@ -43,7 +43,7 @@ class RegisterViewSet(viewsets.ViewSet, generics.CreateAPIView):
                     'refresh_token': str(MyTokenObtainPairSerializer.get_token(account)),
                     "detail": "Đăng ký thành công!"
                 },
-                "message": None
+                "detail": None
             }
             return Response(response, status=status.HTTP_202_ACCEPTED)
 
@@ -51,7 +51,7 @@ class RegisterViewSet(viewsets.ViewSet, generics.CreateAPIView):
             {
                 "status": "error",
                 "data": None,
-                "message": "Tài khoản không hợp lệ!"
+                "detail": "Tài khoản không hợp lệ!"
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -83,14 +83,14 @@ class LoginView(GenericAPIView):
                 response = {
                     "status": "success",
                     "data": data,
-                    "message": None
+                    "detail": None
                 }
                 return Response(response, status=status.HTTP_200_OK)
 
         response = {
             "status": "error",
             "data": None,
-            "message": "Tài khoản không hợp lệ!"
+            "detail": "Tài khoản không hợp lệ!"
         }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -103,7 +103,7 @@ class Logout(APIView):
         response = {
             "status": "success",
             "data": None,
-            "message": None
+            "detail": None
         }
         return Response(response, status=status.HTTP_204_NO_CONTENT)
 
@@ -135,13 +135,13 @@ class ConfirmShipper(GenericAPIView):
             response = {
                 "status": "success",
                 "data": ShipperSerializer(shipper.first()).data,
-                "message": None
+                "detail": None
             }
             return Response(response, status=status.HTTP_200_OK)
         response = {
             "status": "error",
             "data": None,
-            "message": "Dữ liệu không hợp lệ!"
+            "detail": "Dữ liệu không hợp lệ!"
         }
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
@@ -158,13 +158,13 @@ class ShipperViewSet(GenericAPIView):
             response = {
                 "status": "success",
                 "data": ShipperSerializer(shipper.first()).data,
-                "message": None
+                "detail": None
             }
             return Response(response, status=status.HTTP_202_ACCEPTED)
         response = {
             "status": "error",
             "data": None,
-            "message": "Dữ liệu không hợp lệ!"
+            "detail": "Dữ liệu không hợp lệ!"
         }
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
@@ -181,14 +181,14 @@ class CustomerViewSet(GenericAPIView):
             response = {
                 "status": "success",
                 "data": CustomerSerializer(customer.first()).data,
-                "message": None
+                "detail": None
             }
             return Response(response, status=status.HTTP_200_OK)
 
         response = {
             "status": "error",
             "data": None,
-            "message": "Dữ liệu không hợp lệ!"
+            "detail": "Dữ liệu không hợp lệ!"
         }
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
@@ -215,14 +215,14 @@ class CustomerViewSet(GenericAPIView):
             response = {
                 "status": "success",
                 "data": CustomerSerializer(customer.first()).data,
-                "message": None
+                "detail": None
             }
             return Response(response, status=status.HTTP_200_OK)
 
         response = {
             "status": "error",
             "data": None,
-            "message": "Dữ liệu không hợp lệ!"
+            "detail": "Dữ liệu không hợp lệ!"
         }
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
@@ -243,13 +243,13 @@ class UpdateDeviceTokenView(GenericAPIView):
             response = {
                 "status": "success",
                 "data": None,
-                "message": None
+                "detail": None
             }
             return Response(response, status=status.HTTP_200_OK)
         response = {
             "status": "error",
             "data": None,
-            "message": "Dữ liệu không hợp lệ!"
+            "detail": "Dữ liệu không hợp lệ!"
         }
         return Response(
             data=response,
@@ -287,7 +287,7 @@ class ChangePassword(GenericAPIView):
                         response = {
                             "status": "success",
                             "data": None,
-                            "message": "Đổi mật khẩu thành công!"
+                            "detail": None
                         }
                         return Response(response,status=status.HTTP_201_CREATED)
                     else: message= "Mật khẩu không khớp nhau!"
@@ -297,7 +297,7 @@ class ChangePassword(GenericAPIView):
         response={
                     "status": "error",
                     "data": None,
-                    "message": message
+                    "detail": message
                 }
         return Response(response,
                         status=status.HTTP_400_BAD_REQUEST)
@@ -318,7 +318,7 @@ class DetailView(GenericAPIView):
                 response ={
                     "status": "success",
                     "data": DetailCustomerSerializer(customer.first()).data,
-                    "message": None
+                    "detail": None
                 }
                 return Response(response, status=status.HTTP_202_ACCEPTED)
             elif account.first().role == 2:
@@ -327,12 +327,12 @@ class DetailView(GenericAPIView):
                 response ={
                     "status": "success",
                     "data": DetailShipperSerializer(shipper.first()).data,
-                    "message": None
+                    "detail": None
                 }
                 return Response(response, status=status.HTTP_202_ACCEPTED)
         response={
                 "status": "error",
                 "data": None,
-                "message": "Số điện thoại không hợp lệ!"
+                "detail": "Số điện thoại không hợp lệ!"
             }
         return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
