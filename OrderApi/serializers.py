@@ -30,7 +30,7 @@ class StatusSerializer(serializers.ModelSerializer):
                 'read_only': True
             }
         }
-class OrderSerializer(serializers.ModelSerializer):
+class OrderDetailSerializer(serializers.ModelSerializer):
     address_start = AddressSerializer(required=True)
     address_end = AddressSerializer(required=True)
     shipper = ShipperSerializer(required=True)
@@ -63,5 +63,36 @@ class OrderSerializer(serializers.ModelSerializer):
             },
         }
 
+class OrderSerializer(serializers.ModelSerializer):
+    address_start = AddressSerializer(required=True)
+    address_end = AddressSerializer(required=True)
+    class Meta:
+        model= Order
+        fields = '__all__' 
+        extra_kwargs = {
+            'id': {
+                'read_only': True
+            },
+            'customer': {
+                'read_only': True
+            },
+            'created_at': {
+                'read_only': True
+            },
+            'updated_at': {
+                'read_only': True
+            },
+            'status': {
+                'read_only': True
+            },
+            'shipper': {
+                'read_only': True
+            },
+            'cost': {
+                'read_only': True
+            },
+        }
 
 
+class  OrderIdSerializer(serializers.Serializer):
+    order_id = serializers.IntegerField()
