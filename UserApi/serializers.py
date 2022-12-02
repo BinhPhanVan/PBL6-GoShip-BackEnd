@@ -54,7 +54,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     address = AddressSerializer(required=True)
     class Meta:
         model = Customer
-        fields = ['name', 'address', 'gender', 'avatar_url', 'distance_view']
+        fields = ['name', 'address', 'gender', 'avatar_url', 'birth_date', 'distance_view']
 
 class ConfirmShipperSerializer(serializers.ModelSerializer):
     address = AddressSerializer(required=True)

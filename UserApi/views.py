@@ -192,7 +192,7 @@ class CustomerViewSet(GenericAPIView):
         }
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
-    def patch(self, request):
+    def put(self, request):
         customer = Customer.objects.filter(
             account__phone_number=request.user.phone_number)
         address = request.data.get('address')
@@ -232,7 +232,7 @@ class UpdateDeviceTokenView(GenericAPIView):
     queryset = Account.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
-    def path(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
         token_device = request.data.get('token_device')
         account = Account.objects.filter(
             phone_number=request.user.phone_number)

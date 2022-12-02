@@ -30,6 +30,16 @@ class PaymentView(viewsets.ViewSet,
         if self.action == 'list':
             return [permissions.AllowAny()]
         return [IsAdminPermission()]
+    
+    def list(self, request, *args, **kwargs):
+        payment = Payment.objects.all()
+        serializer = PaymentSerializer(payment, many=True)
+        response = {
+            "status": "success",
+            "data": serializer.data,
+            "detail": None
+        }
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class CategoryView(viewsets.ModelViewSet,):
@@ -40,7 +50,16 @@ class CategoryView(viewsets.ModelViewSet,):
         if self.action == 'list':
             return [permissions.AllowAny()]
         return [IsAdminPermission()]
-
+        
+    def list(self, request, *args, **kwargs):
+        category = Category.objects.all()
+        serializer = CategorySerializer(category, many=True)
+        response = {
+            "status": "success",
+            "data": serializer.data,
+            "detail": None
+        }
+        return Response(response, status=status.HTTP_200_OK)
 
 class StatusView(viewsets.ViewSet,
                  generics.ListCreateAPIView,
@@ -56,6 +75,16 @@ class StatusView(viewsets.ViewSet,
         if self.action == 'list':
             return [permissions.AllowAny()]
         return [IsAdminPermission()]
+
+    def list(self, request, *args, **kwargs):
+        stt = Status.objects.all()
+        serializer = StatusSerializer(stt, many=True)
+        response = {
+            "status": "success",
+            "data": serializer.data,
+            "detail": None
+        }
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class OrderView(GenericAPIView):
