@@ -46,7 +46,8 @@ class Shipper(models.Model):
         (1,'Confirming'),
         (2,'Confirmed'),
         (-1,'Deny')
-    ) 
+    )
+    home_address = models.CharField(null= True, blank= True, max_length=500) 
     url_identification_top = models.CharField(max_length=255,null=True)
     url_identification_back = models.CharField(max_length=255,null =True)
     identification_info = models.TextField(max_length=500, null=True, blank =True)

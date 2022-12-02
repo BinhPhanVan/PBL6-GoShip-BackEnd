@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.contrib.auth.hashers import check_password
 from rest_framework.generics import GenericAPIView
-
+from datetime import datetime
 # Create your views here.
 
 
@@ -113,10 +113,13 @@ class ConfirmShipper(GenericAPIView):
     permission_classes = [permissions.IsAuthenticated, IsShipperPermission]
     serializer_class = ConfirmShipperSerializer
 
-    def put(self, request):
+    def patch(self, request):
         account = Account.objects.filter(
             phone_number=request.user.phone_number)
         if account.exists():
+            data_info = request.data.get(
+                               'identification_info')
+            info = data_info.split('|')
             shipper = Shipper.objects.filter(
                 account__phone_number=request.user.phone_number)
             shipper.update(gender=request.data.get('gender'),
@@ -127,10 +130,11 @@ class ConfirmShipper(GenericAPIView):
                                'url_identification_top'),
                            url_identification_back=request.data.get(
                                'url_identification_back'),
-                           identification_info=request.data.get(
-                               'identification_info'),
+                           identification_info=data_info,
                            url_face_video=request.data.get('url_face_video'),
-                           confirmed=1
+                           confirmed=1,
+                           birth_date = datetime(day=int(info[3][:2]), month=int(info[3][2:4]), year=int(info[3][4:])),
+                           home_address = info[5]
                            )
             response = {
                 "status": "success",
@@ -167,6 +171,23 @@ class ShipperViewSet(GenericAPIView):
             "detail": "Dữ liệu không hợp lệ!"
         }
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
+    
+class ShipperUpdateSerializer(GenericAPIView):
+    queryset = Shipper.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsShipperPermission]
+    serializer_class = ShipperUpdateSerializer
+
+    def put(self, request):
+        shipper = Shipper.objects.get(account__phone_number = request.user.phone_number)
+        shipper.distance_receive = request.data.get('distance_receive') 
+        shipper.avatar_url = request.data.get('avatar_url')
+        shipper.save()
+        response = {
+                "status": "success",
+                "data": ShipperSerializer(shipper).data,
+                "detail": None
+        }
+        return Response(response, status=status.HTTP_200_OK)      
 
 
 class CustomerViewSet(GenericAPIView):
@@ -303,7 +324,7 @@ class ChangePassword(GenericAPIView):
                         status=status.HTTP_400_BAD_REQUEST)
 
 
-class DetailView(GenericAPIView):
+class UserDetailView(GenericAPIView):
     serializer_class = PhoneNumberSerializer
     queryset = Account.objects.all()
     permission_classes = [permissions.IsAuthenticated]
