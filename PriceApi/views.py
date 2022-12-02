@@ -50,21 +50,27 @@ def getDistanceBetweenPointsNew(latitude1, longitude1, latitude2, longitude2, un
 @permission_classes([])
 def get_distance(request):
     try:
+        print(request.user)
         start_address = request.data.get('start_address')
         end_address = request.data.get('end_address')
         latitude1 = float(start_address["latitude"])
         latitude2 = float(end_address["latitude"])
         longitude1 = float(start_address["longitude"])
         longitude2 = float(end_address["longitude"])
-        abc = getDistanceBetweenPointsNew(latitude1, longitude1, latitude2, longitude2, 'kilometers')
+        distance = getDistanceBetweenPointsNew(latitude1, longitude1, latitude2, longitude2, 'kilometers')
     except Exception:
-        return Response(data={
-            'detail': 'Dữ liệu không hợp lệ!',
-        }, status=status.HTTP_400_BAD_REQUEST)
-    return Response(data={
-            'detail': 'Dữ liệu hợp lệ',
-            'distance': abc
-        }, status=status.HTTP_202_ACCEPTED)
+        response = {
+            "status": "error",
+            "data": None,
+            "message": "Dữ liệu không hợp lệ!"
+        }
+        return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
+    response = {
+        "status": "success",
+        "data": distance,
+        "message": None
+    }
+    return Response(response, status=status.HTTP_200_OK)
 
 @swagger_auto_schema(methods=['post'], request_body=GetPriceSerializer)
 @api_view(["POST"])
@@ -90,15 +96,22 @@ def get_price(request, *args, **kwargs):
         if request.data.get('is_protected') == 1:
            extra_price =  money * (price.price_protect / 100)
     except Exception:
-        return Response(data={
-            'detail': 'Dữ liệu không hợp lệ!',
-        }, status=status.HTTP_400_BAD_REQUEST)
-    return Response(data={
+        response = {
+            "status": "error",
+            "data": None,
+            "message": "Dữ liệu không hợp lệ!"
+        }
+        return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
+    response = {
+        "status": "success",
+        "data": {
             'detail': 'Dữ liệu hợp lệ',
             'distance': max_km,
             'money': money,
             'extra_price': extra_price,
             'total': money + extra_price
-        }, status=status.HTTP_202_ACCEPTED)
-    
+        },
+        "message": None
+    }
+    return Response(response, status=status.HTTP_200_OK)
     

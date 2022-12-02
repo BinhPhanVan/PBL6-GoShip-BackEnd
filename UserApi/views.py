@@ -35,17 +35,23 @@ class RegisterViewSet(viewsets.ViewSet, generics.CreateAPIView):
             )
             token = MyTokenObtainPairSerializer.get_token(account)
             response = {
-                'role': account.role,
-                'phone_number': account.phone_number,
-                'access_token': str(token),
-                'refresh_token': str(MyTokenObtainPairSerializer.get_token(account)),
-                "detail": "Đăng ký thành công!"
+                "status": "success",
+                "data": {
+                    'role': account.role,
+                    'phone_number': account.phone_number,
+                    'access_token': str(token),
+                    'refresh_token': str(MyTokenObtainPairSerializer.get_token(account)),
+                    "detail": "Đăng ký thành công!"
+                },
+                "message": None
             }
             return Response(response, status=status.HTTP_202_ACCEPTED)
 
         return Response(
             {
-                "detail": "Tài khoản đã tồn tại!"
+                "status": "error",
+                "data": None,
+                "message": "Tài khoản không hợp lệ!"
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -74,17 +80,19 @@ class LoginView(GenericAPIView):
                     'refresh_expires': int(settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds()),
                     'detail': "Đăng nhập thành công !"
                 }
-                return Response(data, status=status.HTTP_200_OK)
-            return Response({
-                'detail': 'Tài khoản hoặc mật khẩu không hợp lệ!',
-                'error_code': 400
-            }, status=status.HTTP_400_BAD_REQUEST)
+                response = {
+                    "status": "success",
+                    "data": data,
+                    "message": None
+                }
+                return Response(response, status=status.HTTP_200_OK)
 
-        return Response({
-            'error_messages': serializer.errors,
-            'error_code': 400,
-            'detail': 'Dữ liệu không hợp lệ!'
-        }, status=status.HTTP_400_BAD_REQUEST)
+        response = {
+            "status": "error",
+            "data": None,
+            "message": "Tài khoản không hợp lệ!"
+        }
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
 class Logout(APIView):
@@ -92,7 +100,12 @@ class Logout(APIView):
 
     def get(self, request):
         logout(request)
-        return Response({"detail": "Đăng xuất thành công!"}, status=status.HTTP_204_NO_CONTENT)
+        response = {
+            "status": "success",
+            "data": None,
+            "message": None
+        }
+        return Response(response, status=status.HTTP_204_NO_CONTENT)
 
 
 class ConfirmShipper(GenericAPIView):
@@ -101,7 +114,6 @@ class ConfirmShipper(GenericAPIView):
     serializer_class = ConfirmShipperSerializer
 
     def put(self, request):
-
         account = Account.objects.filter(
             phone_number=request.user.phone_number)
         if account.exists():
@@ -120,11 +132,18 @@ class ConfirmShipper(GenericAPIView):
                            url_face_video=request.data.get('url_face_video'),
                            confirmed=1
                            )
-
-            return Response(ShipperSerializer(shipper.first()).data, status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={
-            'detail': 'Dữ liệu không hợp lệ!'
-        })
+            response = {
+                "status": "success",
+                "data": ShipperSerializer(shipper.first()).data,
+                "message": None
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        response = {
+            "status": "error",
+            "data": None,
+            "message": "Dữ liệu không hợp lệ!"
+        }
+        return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
 
 class ShipperViewSet(GenericAPIView):
@@ -136,10 +155,18 @@ class ShipperViewSet(GenericAPIView):
         shipper = Shipper.objects.filter(
             account__phone_number=request.user.phone_number)
         if shipper.exists():
-            return Response(ShipperSerializer(shipper.first()).data, status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={
-            'detail': 'Dữ liệu không hợp lệ!'
-        })
+            response = {
+                "status": "success",
+                "data": ShipperSerializer(shipper.first()).data,
+                "message": None
+            }
+            return Response(response, status=status.HTTP_202_ACCEPTED)
+        response = {
+            "status": "error",
+            "data": None,
+            "message": "Dữ liệu không hợp lệ!"
+        }
+        return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
 
 class CustomerViewSet(GenericAPIView):
@@ -151,10 +178,19 @@ class CustomerViewSet(GenericAPIView):
         customer = Customer.objects.filter(
             account__phone_number=request.user.phone_number)
         if customer.exists():
-            return Response(CustomerSerializer(customer.first()).data, status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={
-            'detail': 'Dữ liệu không hợp lệ!'
-        })
+            response = {
+                "status": "success",
+                "data": CustomerSerializer(customer.first()).data,
+                "message": None
+            }
+            return Response(response, status=status.HTTP_200_OK)
+
+        response = {
+            "status": "error",
+            "data": None,
+            "message": "Dữ liệu không hợp lệ!"
+        }
+        return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
     def patch(self, request):
         customer = Customer.objects.filter(
@@ -176,18 +212,27 @@ class CustomerViewSet(GenericAPIView):
                 avatar_url=request.data.get('avatar_url'),
                 distance_view=request.data.get('distance_view'),
             )
-            return Response(CustomerSerializer(customer.first()).data, status=status.HTTP_200_OK)
-        return Response(data={
-            "detail": "Truy vấn không hợp lệ!"
-        }, status=status.HTTP_400_BAD_REQUEST)
+            response = {
+                "status": "success",
+                "data": CustomerSerializer(customer.first()).data,
+                "message": None
+            }
+            return Response(response, status=status.HTTP_200_OK)
+
+        response = {
+            "status": "error",
+            "data": None,
+            "message": "Dữ liệu không hợp lệ!"
+        }
+        return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
 
 class UpdateDeviceTokenView(GenericAPIView):
     serializer_class = UpdateDeviceToken
     queryset = Account.objects.all()
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
+    def path(self, request, *args, **kwargs):
         token_device = request.data.get('token_device')
         account = Account.objects.filter(
             phone_number=request.user.phone_number)
@@ -195,9 +240,19 @@ class UpdateDeviceTokenView(GenericAPIView):
 
         if account.exists():
             account.update(token_device=token_device)
-            return Response(status=status.HTTP_200_OK)
+            response = {
+                "status": "success",
+                "data": None,
+                "message": None
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        response = {
+            "status": "error",
+            "data": None,
+            "message": "Dữ liệu không hợp lệ!"
+        }
         return Response(
-            data={"detail": "Dữ liệu không hợp lệ!"},
+            data=response,
             status=status.HTTp_400_BAD_REQUEST)
 
 
@@ -229,27 +284,30 @@ class ChangePassword(GenericAPIView):
                     if same_pass(new_password, repeat_password):
                         request.user.set_password(new_password)
                         request.user.save()
-                        return Response({
-                        "detail": "Đổi mật khẩu thành công!", },
-                            status=status.HTTP_201_CREATED)
-                    return Response({
-                        "detail": "Mật khẩu mới không trùng khớp!", },
-                            status=status.HTTP_400_BAD_REQUEST)
-                return Response({
-                        "detail": "Mật khẩu tối thiểu 8 kí tự!", },
-                    status=status.HTTP_400_BAD_REQUEST)
-            return Response({
-                        "detail": "Mật khẩu cũ không chính xác!", },
-                    status=status.HTTP_400_BAD_REQUEST)
-        return Response({
-                        "detail": "Dữ liệu không hợp lệ!", },
-                    status=status.HTTP_400_BAD_REQUEST)
+                        response = {
+                            "status": "success",
+                            "data": None,
+                            "message": "Đổi mật khẩu thành công!"
+                        }
+                        return Response(response,status=status.HTTP_201_CREATED)
+                    else: message= "Mật khẩu không khớp nhau!"
+                else: message = "Mật khẩu tối thiểu 8 ký tự!"
+            else: message ="Mật khẩu cũ không đúng"
+        else: message ="Dữ liệu không hợp lệ!"
+        response={
+                    "status": "error",
+                    "data": None,
+                    "message": message
+                }
+        return Response(response,
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class DetailView(GenericAPIView):
     serializer_class = PhoneNumberSerializer
     queryset = Account.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request, *args, **kwargs):
         phone_number = request.data.get('phone_number')
         account = Account.objects.filter(phone_number=phone_number)
@@ -257,15 +315,24 @@ class DetailView(GenericAPIView):
             if account.first().role == 1:
                 customer = Customer.objects.filter(
                     account__phone_number=account.first().phone_number)
-                return Response(data={
-                    "data": DetailCustomerSerializer(customer.first()).data
-                })
+                response ={
+                    "status": "success",
+                    "data": DetailCustomerSerializer(customer.first()).data,
+                    "message": None
+                }
+                return Response(response, status=status.HTTP_202_ACCEPTED)
             elif account.first().role == 2:
-                shipper=Shipper.objects.filter(
+                shipper = Shipper.objects.filter(
                     account__phone_number=account.first().phone_number)
-                return Response(data={
-                    "data": DetailShipperSerializer(shipper.first()).data
-                })
-        return Response(data= {
-            "detail": "Số điện thoại không hợp lệ!"
-        })
+                response ={
+                    "status": "success",
+                    "data": DetailShipperSerializer(shipper.first()).data,
+                    "message": None
+                }
+                return Response(response, status=status.HTTP_202_ACCEPTED)
+        response={
+                "status": "error",
+                "data": None,
+                "message": "Số điện thoại không hợp lệ!"
+            }
+        return Response(data=response, status=status.HTTP_400_BAD_REQUEST)

@@ -17,6 +17,7 @@ class IsAdminPermission(BasePermission):
 class IsShipperPermission(BasePermission):
     def has_permission(self, request, view):
         try:
+            print(request.user.role)
             if request.user.role == 2:
                 return True
             return False
