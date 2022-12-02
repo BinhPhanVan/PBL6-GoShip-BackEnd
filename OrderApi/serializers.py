@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import Payment, Category, Status, Order
 from UserApi.serializers import AddressSerializer
 from UserApi.serializers import ShipperSerializer, CustomerSerializer
+from UserApi.models import Customer
+from AccountApi.models import Account
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
@@ -30,12 +32,26 @@ class StatusSerializer(serializers.ModelSerializer):
                 'read_only': True
             }
         }
+
+class PhoneNumberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ['phone_number']
+        
+class CustomerOrderSerializer(serializers.ModelSerializer):
+    account = PhoneNumberSerializer(required = True)
+    class Meta:
+        model = Customer
+        fields = '__all__'
+
 class OrderDetailSerializer(serializers.ModelSerializer):
     address_start = AddressSerializer(required=True)
     address_end = AddressSerializer(required=True)
-    shipper = ShipperSerializer(required=True)
-    customer = CustomerSerializer(required=True)
     payment = PaymentSerializer(required=True)
+    customer = CustomerOrderSerializer(required=True)
+    category = CategorySerializer(required=True)
+    status = StatusSerializer(required=True)
+
     class Meta:
         model= Order
         fields = '__all__' 

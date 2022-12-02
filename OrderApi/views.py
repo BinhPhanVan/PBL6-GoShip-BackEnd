@@ -15,7 +15,7 @@ from rest_framework.decorators import (
 )
 from rest_framework.authentication import SessionAuthentication
 from drf_yasg.utils import swagger_auto_schema
-
+from .utils import get_price
 
 class PaymentView(viewsets.ViewSet,
                   generics.ListCreateAPIView,
@@ -93,7 +93,8 @@ class OrderView(GenericAPIView):
                     id=request.data.get('payment')).first(),
                 category=Category.objects.filter(
                     id=request.data.get('category')).first(),
-                cost=20000,
+                cost=get_price(serializer.validated_data.get('distance'), Category.objects.filter(
+                    id=request.data.get('category')).first().is_protected),
                 description=serializer.validated_data.get('description'),
                 status=Status.objects.filter(id=1).first()
             )
@@ -109,7 +110,7 @@ class OrderView(GenericAPIView):
         response = {
             "status": "error",
             "data": None,
-            "message": "Dữ liệu không hợp lệ!"
+            "message": "Dữ liệu không hợp lệ!",
         }
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
@@ -123,13 +124,9 @@ class OrderDetailView(GenericAPIView):
         order = Order.objects.filter(id=order_id)
         if order.exists():
             order = order.first()
-            order.status = Status.objects.get(id=2)
-            order.shipper = Shipper.objects.get(
-                account__phone_number=request.user.phone_number)
-            order.save()
             response = {
                 "status": "success",
-                "data":  OrderSerializer(order).data,
+                "data":  OrderDetailSerializer(order).data,
                 "message": None
             }
             return Response(response, status=status.HTTP_200_OK)
@@ -166,7 +163,7 @@ class OrderReceiveView(GenericAPIView):
                     "data": None,
                     "message": "Đơn hàng đã có người nhận!"
                 }
-            return Response(response, status=status.HTTP_200_OK)
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
         response = {
             "status": "error",
             "data": None,
