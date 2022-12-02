@@ -8,7 +8,7 @@ class ShipperCustom(admin.ModelAdmin):
 
     fieldsets = (
         ('Information', {
-            'fields': ('account', 'name', 'avatar', 'gender', 'birth_date', 'address')
+            'fields': ('account', 'name', 'avatar', 'gender', 'birth_date', 'home_address')
         }),
         ('Identification', {
             'fields': ('top_identification_image', 'back_identification_image', 'face_video'),

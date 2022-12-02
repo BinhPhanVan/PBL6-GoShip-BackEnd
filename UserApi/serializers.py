@@ -90,3 +90,7 @@ class DetailShipperSerializer(serializers.ModelSerializer):
 class PhoneNumberSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=20)
 
+class ShipperUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shipper
+        fields = ['avatar_url','distance_receive','birth_date']  
