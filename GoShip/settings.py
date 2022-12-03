@@ -244,3 +244,4 @@ JAZZMIN_SETTINGS = {
     ],
     "show_sidebar": True,
 }
+
