@@ -13,9 +13,11 @@ from rest_framework.decorators import (
     authentication_classes,
     permission_classes,
 )
+from django.core.paginator import Paginator
 from rest_framework.authentication import SessionAuthentication
 from drf_yasg.utils import swagger_auto_schema
 from .utils import get_price
+
 
 class PaymentView(viewsets.ViewSet,
                   generics.ListCreateAPIView,
@@ -30,7 +32,7 @@ class PaymentView(viewsets.ViewSet,
         if self.action == 'list':
             return [permissions.AllowAny()]
         return [IsAdminPermission()]
-    
+
     def list(self, request, *args, **kwargs):
         payment = Payment.objects.all()
         serializer = PaymentSerializer(payment, many=True)
@@ -50,7 +52,7 @@ class CategoryView(viewsets.ModelViewSet,):
         if self.action == 'list':
             return [permissions.AllowAny()]
         return [IsAdminPermission()]
-        
+
     def list(self, request, *args, **kwargs):
         category = Category.objects.all()
         serializer = CategorySerializer(category, many=True)
@@ -60,6 +62,7 @@ class CategoryView(viewsets.ModelViewSet,):
             "detail": None
         }
         return Response(response, status=status.HTTP_200_OK)
+
 
 class StatusView(viewsets.ViewSet,
                  generics.ListCreateAPIView,
@@ -97,11 +100,21 @@ class OrderView(GenericAPIView):
         phone_number = request.user.phone_number
         order = Order.objects.filter(
             customer__account__phone_number=phone_number)
-        serializer = OrderSerializer(order, many=True)
+        paginator = Paginator(order, 10)
+        page = request.GET.get('page')
+        try:
+                orders = paginator.page(page)
+        except:
+                orders = paginator.page(1)
+        serializer = OrderSerializer(orders, many=True)
         response = {
             "status": "success",
-            "data": serializer.data,
-            "detail": None
+            "data": {
+                "orders": serializer.data,
+                "total": paginator.count,
+                "num_pages": paginator.num_pages,
+            },
+            "detail": None,
         }
         return Response(response, status=status.HTTP_200_OK)
 
