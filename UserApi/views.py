@@ -232,6 +232,7 @@ class CustomerViewSet(GenericAPIView):
                 gender=request.data.get('gender'),
                 avatar_url=request.data.get('avatar_url'),
                 distance_view=request.data.get('distance_view'),
+                birth_date = request.data.get('birth_date'),
             )
             response = {
                 "status": "success",
