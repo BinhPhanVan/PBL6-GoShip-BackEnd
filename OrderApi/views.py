@@ -199,13 +199,14 @@ class OrderReceiveView(GenericAPIView):
                     "data":  OrderSerializer(order).data,
                     "detail": None
                 }
+                return Response(response, status=status.HTTP_200_OK)
             else:
                 response = {
                     "status": "error",
                     "data": None,
                     "detail": "Đơn hàng đã có người nhận!"
                 }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
         response = {
             "status": "error",
             "data": None,
