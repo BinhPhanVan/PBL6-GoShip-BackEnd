@@ -17,7 +17,7 @@ from django.core.paginator import Paginator
 from rest_framework.authentication import SessionAuthentication
 from drf_yasg.utils import swagger_auto_schema
 from .utils import get_price
-
+from BaseApi.FirebaseManager import sendNotificationToCustomer
 
 class PaymentView(viewsets.ViewSet,
                   generics.ListCreateAPIView,
@@ -199,6 +199,8 @@ class OrderReceiveView(GenericAPIView):
                     "data":  OrderSerializer(order).data,
                     "detail": None
                 }
+                account  = Account.objects.get(phone_number=order.customer.account.phone_number)
+                sendNotificationToCustomer(account.token_device, order.id, 2)
                 return Response(response, status=status.HTTP_200_OK)
             else:
                 response = {
