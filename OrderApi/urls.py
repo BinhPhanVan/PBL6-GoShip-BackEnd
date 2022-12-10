@@ -15,5 +15,6 @@ urlpatterns = [
     path('order/order-delivery/', OrderDelivery.as_view(), name='delivery_order'),
     path('order/request-confirm-done/', OrderRequestConfirmDone.as_view(), name='request_confirm_order'),
     path('order/confirm-done/', OrderConfirmDone.as_view(), name='confirm-done'),
+    path('order/rate/', RatingOrder.as_view(), name='rating-order'),
 ]
 urlpatterns += router.urls

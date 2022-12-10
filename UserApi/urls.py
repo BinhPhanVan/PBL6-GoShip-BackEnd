@@ -14,7 +14,8 @@ urlpatterns = [
     path("shipper/confirm-shipper/", ConfirmShipper.as_view(), name="confirm"),
     path("shipper/detail/", ShipperViewSet.as_view(), name="shipper-detail"),
     path("shipper/update/", ShipperUpdateSerializer.as_view(), name="shipper-update"),
-    
+    path("shipper/<int:shipper_id>/mean-rate/", RatingShipper.as_view(), name="rate-shipper"),
+    path("shipper/<int:shipper_id>/list-rate-detail/", ListRateShipper.as_view(), name="list-rate-shipper"),
     path("customer/detail/", CustomerViewSet.as_view(), name="customer-detail"),
     
     path("user/login/",csrf_exempt(LoginView.as_view()), name="login"),

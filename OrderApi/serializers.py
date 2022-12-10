@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Payment, Category, Status, Order
+from .models import Payment, Category, Status, Order, Rate
 from UserApi.serializers import AddressSerializer
 from UserApi.serializers import ShipperSerializer, CustomerSerializer
 from UserApi.models import Customer
@@ -112,3 +112,13 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class  OrderIdSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
+
+class RateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Rate
+        fields = '__all__' 
+        extra_kwargs = {
+            'id': {
+                'read_only': True
+            },
+        }

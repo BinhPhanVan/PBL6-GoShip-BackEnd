@@ -320,6 +320,7 @@ class OrderConfirmDone(GenericAPIView):
             if order.customer.account.phone_number == request.user.phone_number:
                 if order.status.id == 3:
                     order.status = Status.objects.get(pk=5)
+                    order.save()
                     response = {
                         "status": "success",
                         "data":  OrderSerializer(order).data,
@@ -344,6 +345,58 @@ class OrderConfirmDone(GenericAPIView):
                     "detail": "Đây không phải là đơn hàng của bạn!"
                 }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            response = {
+                "status": "error",
+                "data": None,
+                "detail": "Đơn hàng không hợp lệ!"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RatingOrder(GenericAPIView):
+    queryset = Rate.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsCustomerPermission]
+    serializer_class = RateSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            order = Order.objects.get(id=request.data.get('order'))
+            if order.customer.account.phone_number == request.user.phone_number:
+                if order.status.id == 5:
+                    if order.is_rating:
+                        response = {
+                        "status": "error",
+                        "data":  None,
+                        "detail": "Đơn hàng đã được đánh giá!"
+                        }
+                        return Response(response, status=status.HTTP_406_NOT_ACCEPTABLE)
+                    rate = Rate.objects.create(order=order,
+                                                feedback=request.data.get(
+                                                    'feedback'),
+                                                rate=int(request.data.get('rate')))
+                    order.is_rating = True
+                    order.save()
+                    response = {
+                        "status": "success",
+                        "data":  RateSerializer(rate).data,
+                        "detail": None
+                    }
+                    return Response(response, status=status.HTTP_202_ACCEPTED)
+                else:
+                    response = {
+                        "status": "error",
+                        "data": None,
+                        "detail": "Trạng thái đơn hàng không hỗ trợ hành động này!"
+                    }
+            else:
+                response = {
+                    "status": "error",
+                    "data": None,
+                    "detail": "Đây không phải là đơn hàng của bạn!"
+                }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
         except:
             response = {
                 "status": "error",
