@@ -47,6 +47,7 @@ def sendPush(title, msg, registration_token, phone_numbers, dataObject=None):
             "title": title,
             "body": msg,
             "data": dataObject,
+            "seen": False,
         })
     message = messaging.MulticastMessage(
         notification=messaging.Notification(

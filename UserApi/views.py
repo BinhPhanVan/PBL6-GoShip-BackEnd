@@ -10,7 +10,11 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.contrib.auth.hashers import check_password
 from rest_framework.generics import GenericAPIView
+from OrderApi.models import Rate
 from datetime import datetime
+from django.db.models import Avg
+from statistics import mean
+from OrderApi.serializers import RateSerializer
 # Create your views here.
 
 
@@ -118,7 +122,7 @@ class ConfirmShipper(GenericAPIView):
             phone_number=request.user.phone_number)
         if account.exists():
             data_info = request.data.get(
-                               'identification_info')
+                'identification_info')
             info = data_info.split('|')
             shipper = Shipper.objects.filter(
                 account__phone_number=request.user.phone_number)
@@ -133,8 +137,9 @@ class ConfirmShipper(GenericAPIView):
                            identification_info=data_info,
                            url_face_video=request.data.get('url_face_video'),
                            confirmed=1,
-                           birth_date = datetime(day=int(info[3][:2]), month=int(info[3][2:4]), year=int(info[3][4:])),
-                           home_address = info[5]
+                           birth_date=datetime(day=int(info[3][:2]), month=int(
+                               info[3][2:4]), year=int(info[3][4:])),
+                           home_address=info[5]
                            )
             response = {
                 "status": "success",
@@ -171,23 +176,25 @@ class ShipperViewSet(GenericAPIView):
             "detail": "Dữ liệu không hợp lệ!"
         }
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
-    
+
+
 class ShipperUpdateSerializer(GenericAPIView):
     queryset = Shipper.objects.all()
     permission_classes = [permissions.IsAuthenticated, IsShipperPermission]
     serializer_class = ShipperUpdateSerializer
 
     def put(self, request):
-        shipper = Shipper.objects.get(account__phone_number = request.user.phone_number)
-        shipper.distance_receive = request.data.get('distance_receive') 
+        shipper = Shipper.objects.get(
+            account__phone_number=request.user.phone_number)
+        shipper.distance_receive = request.data.get('distance_receive')
         shipper.avatar_url = request.data.get('avatar_url')
         shipper.save()
         response = {
-                "status": "success",
-                "data": ShipperSerializer(shipper).data,
-                "detail": None
+            "status": "success",
+            "data": ShipperSerializer(shipper).data,
+            "detail": None
         }
-        return Response(response, status=status.HTTP_200_OK)      
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class CustomerViewSet(GenericAPIView):
@@ -232,7 +239,7 @@ class CustomerViewSet(GenericAPIView):
                 gender=request.data.get('gender'),
                 avatar_url=request.data.get('avatar_url'),
                 distance_view=request.data.get('distance_view'),
-                birth_date = request.data.get('birth_date'),
+                birth_date=request.data.get('birth_date'),
             )
             response = {
                 "status": "success",
@@ -311,16 +318,20 @@ class ChangePassword(GenericAPIView):
                             "data": None,
                             "detail": None
                         }
-                        return Response(response,status=status.HTTP_201_CREATED)
-                    else: message= "Mật khẩu không khớp nhau!"
-                else: message = "Mật khẩu tối thiểu 8 ký tự!"
-            else: message ="Mật khẩu cũ không đúng"
-        else: message ="Dữ liệu không hợp lệ!"
-        response={
-                    "status": "error",
-                    "data": None,
-                    "detail": message
-                }
+                        return Response(response, status=status.HTTP_201_CREATED)
+                    else:
+                        message = "Mật khẩu không khớp nhau!"
+                else:
+                    message = "Mật khẩu tối thiểu 8 ký tự!"
+            else:
+                message = "Mật khẩu cũ không đúng"
+        else:
+            message = "Dữ liệu không hợp lệ!"
+        response = {
+            "status": "error",
+            "data": None,
+            "detail": message
+        }
         return Response(response,
                         status=status.HTTP_400_BAD_REQUEST)
 
@@ -337,7 +348,7 @@ class UserDetailView(GenericAPIView):
             if account.first().role == 1:
                 customer = Customer.objects.filter(
                     account__phone_number=account.first().phone_number)
-                response ={
+                response = {
                     "status": "success",
                     "data": DetailCustomerSerializer(customer.first()).data,
                     "detail": None
@@ -346,15 +357,56 @@ class UserDetailView(GenericAPIView):
             elif account.first().role == 2:
                 shipper = Shipper.objects.filter(
                     account__phone_number=account.first().phone_number)
-                response ={
+                response = {
                     "status": "success",
                     "data": DetailShipperSerializer(shipper.first()).data,
                     "detail": None
                 }
                 return Response(response, status=status.HTTP_202_ACCEPTED)
-        response={
-                "status": "error",
-                "data": None,
-                "detail": "Số điện thoại không hợp lệ!"
-            }
+        response = {
+            "status": "error",
+            "data": None,
+            "detail": "Số điện thoại không hợp lệ!"
+        }
         return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RatingShipper(GenericAPIView):
+    queryset = Rate.objects.all()
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, shipper_id):
+        rates = list(Rate.objects.filter(order__shipper_id=shipper_id))
+        list_point = []
+        for rate in rates:
+            list_point.append(rate.rate)
+
+        response = {
+            "status": "success",
+            "data": mean(list_point) if len(list_point) else "Chưa có thông tin đánh giá về tài xế",
+            "detail": None
+        }
+        return Response(response, status=status.HTTP_202_ACCEPTED)
+
+class ListRateShipper(GenericAPIView):
+    queryset = Rate.objects.all()
+    permission_classes = [permissions.AllowAny]
+    
+    def get(self, request, shipper_id):
+        data = Rate.objects.filter(order__shipper_id=shipper_id)
+        rates = list(data)
+        list_point = []
+        for rate in rates:
+            list_point.append(rate.rate)
+
+        response = {
+            "status": "success",
+            "data": {"mean": mean(list_point),
+                    "len": len(list_point),
+                    "rates": RateSerializer(data, many = True).data
+                    } 
+                    if len(list_point) 
+                    else "Chưa có thông tin đánh giá về tài xế",
+            "detail": None
+        }
+        return Response(response, status=status.HTTP_202_ACCEPTED)

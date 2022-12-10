@@ -33,6 +33,7 @@ class Status(models.Model):
     class Meta:
         db_table = 'Status'
 
+
 class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     shipper = models.ForeignKey(Shipper,  on_delete=models.CASCADE, blank=True, null=True) #null = True
@@ -48,5 +49,19 @@ class Order(models.Model):
     address_end = models.OneToOneField(Address,  on_delete=models.CASCADE, related_name='address_end')
     status = models.ForeignKey(Status, on_delete=models.CASCADE)
     img_order = models.CharField(max_length=255, null=True, blank=True)
+    is_rating = models.BooleanField(default=False)
     def __str__(self):
         return 'Đơn yêu cầu giao hàng số ' +str(self.id)
+
+
+class Rate(models.Model):
+    order = models.ForeignKey(Order, on_delete= models.CASCADE)
+    feedback = models.TextField(max_length= 1000, null = True, blank = True)
+    rates = (
+        (1, "1*"),
+        (2, "2*"),
+        (3, "3*"),
+        (4, "4*"),
+        (5, "5*"),
+    )
+    rate = models.IntegerField(choices= rates)
