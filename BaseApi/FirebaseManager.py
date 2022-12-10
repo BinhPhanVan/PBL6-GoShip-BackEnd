@@ -2,7 +2,7 @@ import firebase_admin
 from firebase_admin import credentials, messaging, db
 from UserApi.models import Shipper
 from numpy import sin, cos, arccos, pi, round
-
+from BaseApi.models import Notification
 
 def rad2deg(radians):
     degrees = radians * 180 / pi
@@ -68,6 +68,12 @@ def sendNotificationToShipper(lat, long, order_id):
             shipper = shipper.first()
             if distance <= shipper.distance_receive:
                 tokens.append(str(shipper.account.token_device))
+    notification = Notification.objects.get(type = 1)
+    sendPush(notification.title, notification.body,
+             tokens, dataObject={"order_id": str(order_id), "type": "1"})
 
-    sendPush("Có đơn hàng gần đây", "Ấn vào để nhận đơn ngay!",
-             tokens, dataObject={"order_id": str(order_id)})
+def sendNotificationToCustomer(token_device, order_id, type):
+    notification = Notification.objects.get(type = type) 
+    sendPush(notification.title, notification.body,
+             [token_device], dataObject={"order_id": str(order_id),"type": str(type)})
+
