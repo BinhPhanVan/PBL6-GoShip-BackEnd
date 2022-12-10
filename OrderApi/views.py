@@ -17,7 +17,8 @@ from django.core.paginator import Paginator
 from rest_framework.authentication import SessionAuthentication
 from drf_yasg.utils import swagger_auto_schema
 from .utils import get_price
-from BaseApi.FirebaseManager import sendNotificationToCustomer
+from BaseApi.FirebaseManager import sendNotificationUser
+
 
 class PaymentView(viewsets.ViewSet,
                   generics.ListCreateAPIView,
@@ -103,9 +104,9 @@ class OrderView(GenericAPIView):
         paginator = Paginator(order, 10)
         page = request.GET.get('page')
         try:
-                orders = paginator.page(page)
+            orders = paginator.page(page)
         except:
-                orders = paginator.page(1)
+            orders = paginator.page(1)
         serializer = OrderSerializer(orders, many=True)
         response = {
             "status": "success",
@@ -199,8 +200,11 @@ class OrderReceiveView(GenericAPIView):
                     "data":  OrderSerializer(order).data,
                     "detail": None
                 }
-                account  = Account.objects.get(phone_number=order.customer.account.phone_number)
-                sendNotificationToCustomer(account.token_device, order.id, 2)
+                customer_phone_number = order.customer.account.phone_number
+                account = Account.objects.get(
+                    phone_number=customer_phone_number)
+                sendNotificationUser(
+                    account.token_device, customer_phone_number, order.id, 2)
                 return Response(response, status=status.HTTP_200_OK)
             else:
                 response = {
@@ -215,3 +219,135 @@ class OrderReceiveView(GenericAPIView):
             "detail": "Đơn hàng không tồn tại!"
         }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+class OrderDelivery(GenericAPIView):
+    queryset = Order.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsShipperPermission]
+    serializer_class = OrderIdSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            order = Order.objects.get(id=request.data.get('order_id'))
+            if order.shipper.account.phone_number == request.user.phone_number:
+                if order.status.id == 2:
+                    order.status = Status.objects.get(pk=3)
+                    order.save()
+                    response = {
+                        "status": "success",
+                        "data":  OrderSerializer(order).data,
+                        "detail": None
+                    }
+                    customer_phone_number = order.customer.account.phone_number
+                    account = Account.objects.get(
+                        phone_number=customer_phone_number)
+                    sendNotificationUser(
+                        account.token_device, customer_phone_number, order.id, 3)
+                    return Response(response, status=status.HTTP_202_ACCEPTED)
+                else:
+                    response = {
+                        "status": "error",
+                        "data": None,
+                        "detail": "Trạng thái đơn hàng không hỗ trợ hành động này!"
+                    }
+            else:
+                response = {
+                    "status": "error",
+                    "data": None,
+                    "detail": "Đây không phải là đơn hàng của bạn!"
+                }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            response = {
+                "status": "error",
+                "data": None,
+                "detail": "Đơn hàng không hợp lệ!"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+class OrderRequestConfirmDone(GenericAPIView):
+    queryset = Order.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsShipperPermission]
+    serializer_class = OrderIdSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            order = Order.objects.get(id=request.data.get('order_id'))
+            if order.shipper.account.phone_number == request.user.phone_number:
+                if order.status.id == 3:
+                    response = {
+                        "status": "success",
+                        "data":  OrderSerializer(order).data,
+                        "detail": None
+                    }
+                    customer_phone_number = order.customer.account.phone_number
+                    account = Account.objects.get(
+                        phone_number=customer_phone_number)
+                    sendNotificationUser(
+                        account.token_device, customer_phone_number, order.id, 5)
+                    return Response(response, status=status.HTTP_202_ACCEPTED)
+                else:
+                    response = {
+                        "status": "error",
+                        "data": None,
+                        "detail": "Trạng thái đơn hàng không hỗ trợ hành động này!"
+                    }
+            else:
+                response = {
+                    "status": "error",
+                    "data": None,
+                    "detail": "Đây không phải là đơn hàng của bạn!"
+                }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            response = {
+                "status": "error",
+                "data": None,
+                "detail": "Đơn hàng không hợp lệ!"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+class OrderConfirmDone(GenericAPIView):
+    queryset = Order.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsCustomerPermission]
+    serializer_class = OrderIdSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            order = Order.objects.get(id=request.data.get('order_id'))
+            if order.customer.account.phone_number == request.user.phone_number:
+                if order.status.id == 3:
+                    order.status = Status.objects.get(pk=5)
+                    response = {
+                        "status": "success",
+                        "data":  OrderSerializer(order).data,
+                        "detail": None
+                    }
+                    shipper_phone_number = order.shipper.account.phone_number
+                    account = Account.objects.get(
+                        phone_number=shipper_phone_number)
+                    sendNotificationUser(
+                        account.token_device, shipper_phone_number, order.id, 6)
+                    return Response(response, status=status.HTTP_202_ACCEPTED)
+                else:
+                    response = {
+                        "status": "error",
+                        "data": None,
+                        "detail": "Trạng thái đơn hàng không hỗ trợ hành động này!"
+                    }
+            else:
+                response = {
+                    "status": "error",
+                    "data": None,
+                    "detail": "Đây không phải là đơn hàng của bạn!"
+                }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            response = {
+                "status": "error",
+                "data": None,
+                "detail": "Đơn hàng không hợp lệ!"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)

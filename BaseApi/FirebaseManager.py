@@ -4,6 +4,7 @@ from UserApi.models import Shipper
 from numpy import sin, cos, arccos, pi, round
 from BaseApi.models import Notification
 
+
 def rad2deg(radians):
     degrees = radians * 180 / pi
     return degrees
@@ -37,8 +38,16 @@ firebase_admin.initialize_app(
     cred, {'databaseURL': 'https://pbl6-goship-default-rtdb.asia-southeast1.firebasedatabase.app/'})
 
 
-def sendPush(title, msg, registration_token, dataObject=None):
+def sendPush(title, msg, registration_token, phone_numbers, dataObject=None):
     # See documentation on defining a message payload.
+    print(registration_token)
+    reference = db.reference('/')
+    for phone_number in phone_numbers:
+        reference.child("notification").child(phone_number).push({
+            "title": title,
+            "body": msg,
+            "data": dataObject,
+        })
     message = messaging.MulticastMessage(
         notification=messaging.Notification(
             title=title,
@@ -62,18 +71,22 @@ def sendNotificationToShipper(lat, long, order_id):
         longitude = result[key]["longitude"]
         distance = getDistanceBetweenPointsNew(
             lat, long, latitude, longitude, 'kilometers')
+        if lat == latitude and long == longitude:
+            distance = 0
         shipper = shippers.filter(account__phone_number=key)
         tokens = []
+        phone_numbers = []
         if shipper.exists():
             shipper = shipper.first()
             if distance <= shipper.distance_receive:
                 tokens.append(str(shipper.account.token_device))
-    notification = Notification.objects.get(type = 1)
+                phone_numbers.append(str(shipper.account.phone_number))
+    notification = Notification.objects.get(type=1)
     sendPush(notification.title, notification.body,
-             tokens, dataObject={"order_id": str(order_id), "type": "1"})
+             tokens, phone_numbers, dataObject={"order_id": str(order_id), "type": "1"})
 
-def sendNotificationToCustomer(token_device, order_id, type):
-    notification = Notification.objects.get(type = type) 
+
+def sendNotificationUser(token_device, phone_number, order_id, type):
+    notification = Notification.objects.get(type=type)
     sendPush(notification.title, notification.body,
-             [token_device], dataObject={"order_id": str(order_id),"type": str(type)})
-
+             [token_device], [phone_number],  dataObject={"order_id": str(order_id), "type": str(type)})
