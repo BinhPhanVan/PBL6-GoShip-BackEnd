@@ -26,3 +26,4 @@ class AccountAdmin(admin.ModelAdmin):
         else:
             res.append(Admin.objects.filter(account=obj).first())
         return res
+
