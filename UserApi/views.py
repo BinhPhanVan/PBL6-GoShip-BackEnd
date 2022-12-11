@@ -374,7 +374,7 @@ class UserDetailView(GenericAPIView):
 class RatingShipper(GenericAPIView):
     queryset = Rate.objects.all()
     permission_classes = [permissions.AllowAny]
-
+    serializer_class = RateSerializer
     def get(self, request, shipper_id):
         rates = list(Rate.objects.filter(order__shipper_id=shipper_id))
         list_point = []
@@ -391,7 +391,7 @@ class RatingShipper(GenericAPIView):
 class ListRateShipper(GenericAPIView):
     queryset = Rate.objects.all()
     permission_classes = [permissions.AllowAny]
-    
+    serializer_class = RateSerializer
     def get(self, request, shipper_id):
         data = Rate.objects.filter(order__shipper_id=shipper_id)
         rates = list(data)
