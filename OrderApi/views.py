@@ -180,6 +180,37 @@ class OrderDetailView(GenericAPIView):
         }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+class OrderStatusView(GenericAPIView):
+    queryset = Order.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = OrderSerializer
+    def get(self, request, status_id, page):
+        if request.user.role == 1:
+            orders = Order.objects.filter(status_id=status_id, customer__account__phone_number = request.user.phone_number)
+        if request.user.role == 2:
+            orders = Order.objects.filter(status_id=status_id, shipper__account__phone_number  = request.user.phone_number)
+        if orders.exists():
+            paginator = Paginator(list(orders), 10)
+            try:
+                orders = paginator.page(page)
+            except:
+                orders = paginator.page(1)
+            serializer = OrderSerializer(orders, many=True)
+            response = {
+                "status": "success",
+                "data": {
+                    "orders": serializer.data,
+                    "total": paginator.count,
+                },
+                "detail": None,
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        response = {
+            "status": "error",
+            "data": None,
+            "detail": "Không tồn tại order nào!"
+        }
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 class OrderReceiveView(GenericAPIView):
     queryset = Order.objects.all()

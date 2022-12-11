@@ -82,6 +82,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     address_start = AddressSerializer(required=True)
     address_end = AddressSerializer(required=True)
+    status = StatusSerializer(required=True)
     class Meta:
         model= Order
         fields = '__all__' 
@@ -96,9 +97,6 @@ class OrderSerializer(serializers.ModelSerializer):
                 'read_only': True
             },
             'updated_at': {
-                'read_only': True
-            },
-            'status': {
                 'read_only': True
             },
             'shipper': {
