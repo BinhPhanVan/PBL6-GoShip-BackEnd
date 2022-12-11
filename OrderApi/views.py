@@ -185,32 +185,35 @@ class OrderStatusView(GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = OrderSerializer
     def get(self, request, status_id, page):
+        if  status_id > 5:
+            response = {
+                "status": "error",
+                "data": None,
+                "detail": "status_id không tồn tại"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
         if request.user.role == 1:
             orders = Order.objects.filter(status_id=status_id, customer__account__phone_number = request.user.phone_number)
         if request.user.role == 2:
             orders = Order.objects.filter(status_id=status_id, shipper__account__phone_number  = request.user.phone_number)
-        if orders.exists():
-            paginator = Paginator(list(orders), 10)
-            try:
-                orders = paginator.page(page)
-            except:
-                orders = paginator.page(1)
-            serializer = OrderSerializer(orders, many=True)
-            response = {
-                "status": "success",
-                "data": {
-                    "orders": serializer.data,
-                    "total": paginator.count,
-                },
-                "detail": None,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+        paginator = Paginator(list(orders), 10)
         response = {
-            "status": "error",
-            "data": None,
-            "detail": "Không tồn tại order nào!"
-        }
-        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            "status": "success",
+            "detail": None,
+            }
+        try:
+            orders = paginator.page(page)
+            serializer = OrderSerializer(orders, many=True)
+            response["data"] = {
+                "orders": serializer.data,
+                "total": paginator.count,
+            },
+        except:
+            response["data"] = {
+                "orders": [],
+                "total": paginator.count,
+            },
+        return Response(response, status=status.HTTP_200_OK)
 
 class OrderReceiveView(GenericAPIView):
     queryset = Order.objects.all()
