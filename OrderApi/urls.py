@@ -11,6 +11,7 @@ router.register(r'status', StatusView, basename='status')
 urlpatterns = [
     path('order/', OrderView.as_view(), name='order'),
     path('order/order-detail/<int:order_id>/', OrderDetailView.as_view(), name='detail_order'),
+    path('order/status/<int:status_id>/<int:page>', OrderStatusView.as_view(), name='detail_order'),
     path('order/order-receive/', OrderReceiveView.as_view(), name='receive_order'),
     path('order/order-delivery/', OrderDelivery.as_view(), name='delivery_order'),
     path('order/request-confirm-done/', OrderRequestConfirmDone.as_view(), name='request_confirm_order'),
