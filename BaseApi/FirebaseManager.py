@@ -1,3 +1,4 @@
+import time
 import firebase_admin
 from firebase_admin import credentials, messaging, db
 from UserApi.models import Shipper
@@ -40,15 +41,18 @@ firebase_admin.initialize_app(
 
 def sendPush(title, msg, registration_token, phone_numbers, dataObject=None):
     # See documentation on defining a message payload.
+    current_time = str(round(time.time() * 1000))[:-3]
+    dataObject["time"] = current_time
     print(registration_token)
     reference = db.reference('/')
     for phone_number in phone_numbers:
-        reference.child("notification").child(phone_number).push({
+        reference.child("notification").child(phone_number).child(current_time).set({
             "title": title,
             "body": msg,
             "data": dataObject,
             "seen": False,
         })
+        
     message = messaging.MulticastMessage(
         notification=messaging.Notification(
             title=title,
