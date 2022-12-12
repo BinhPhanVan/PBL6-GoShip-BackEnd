@@ -107,6 +107,9 @@ class OrderSerializer(serializers.ModelSerializer):
             'is_rating': {
                 'read_only': True
             },
+            'status': {
+                'read_only': True
+            },
         }
 
 
