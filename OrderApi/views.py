@@ -449,3 +449,4 @@ class RatingOrder(GenericAPIView):
                 "detail": "Đơn hàng không hợp lệ!"
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
