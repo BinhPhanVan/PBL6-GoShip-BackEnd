@@ -16,6 +16,7 @@ from rest_framework.decorators import (
 from django.core.paginator import Paginator
 from rest_framework.authentication import SessionAuthentication
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from .utils import get_price
 from BaseApi.FirebaseManager import sendNotificationUser
 
@@ -184,7 +185,13 @@ class OrderStatusView(GenericAPIView):
     queryset = Order.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = OrderSerializer
-    def get(self, request, status_id, page):
+
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter('page',in_= openapi.IN_QUERY,description='Page Number',type=openapi.TYPE_INTEGER),
+        openapi.Parameter('status_id',in_= openapi.IN_QUERY,description='Status ID',type=openapi.TYPE_INTEGER)])
+    def get(self, request):
+        status_id = int(request.query_params.get('status_id'))
+        page = int(request.query_params.get('page'))
         if  status_id > 5:
             response = {
                 "status": "error",
