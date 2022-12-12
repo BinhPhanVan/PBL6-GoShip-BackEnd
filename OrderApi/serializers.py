@@ -82,7 +82,6 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     address_start = AddressSerializer(required=True)
     address_end = AddressSerializer(required=True)
-    status = StatusSerializer(required=True)
     class Meta:
         model= Order
         fields = '__all__' 
@@ -103,6 +102,9 @@ class OrderSerializer(serializers.ModelSerializer):
                 'read_only': True
             },
             'cost': {
+                'read_only': True
+            },
+            'is_rating': {
                 'read_only': True
             },
         }
