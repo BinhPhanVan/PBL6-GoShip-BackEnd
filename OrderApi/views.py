@@ -204,10 +204,14 @@ class OrderStatusView(GenericAPIView):
         try:
             orders = paginator.page(page)
             serializer = OrderDetailSerializer(orders, many=True)
-            response["data"] = {
+            response = {
+            "status": "success",
+            "data":{
                 "orders": serializer.data,
                 "total": paginator.count,
-            },
+                },
+            "detail": None
+            }
         except:
             response["data"] = {
                 "orders": [],
