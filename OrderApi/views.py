@@ -100,7 +100,7 @@ class OrderView(GenericAPIView):
     def get(self, request):
         phone_number = request.user.phone_number
         order = Order.objects.filter(
-            customer__account__phone_number=phone_number)
+            customer__account__phone_number=phone_number).order_by('id')
         paginator = Paginator(order, 10)
         page = request.GET.get('page')
         try:
@@ -193,10 +193,10 @@ class OrderStatusView(GenericAPIView):
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         if request.user.role == 1:
-            orders = Order.objects.filter(status_id=status_id, customer__account__phone_number = request.user.phone_number)
+            orders = Order.objects.filter(status_id=status_id, customer__account__phone_number = request.user.phone_number).order_by('id')
         if request.user.role == 2:
-            orders = Order.objects.filter(status_id=status_id, shipper__account__phone_number  = request.user.phone_number)
-        paginator = Paginator(list(orders), 10)
+            orders = Order.objects.filter(status_id=status_id, shipper__account__phone_number  = request.user.phone_number).order_by('id')
+        paginator = Paginator(orders, 10)
         response = {
             "status": "success",
             "detail": None,
