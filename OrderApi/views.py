@@ -203,7 +203,7 @@ class OrderStatusView(GenericAPIView):
             }
         try:
             orders = paginator.page(page)
-            serializer = OrderSerializer(orders, many=True)
+            serializer = OrderDetailSerializer(orders, many=True)
             response["data"] = {
                 "orders": serializer.data,
                 "total": paginator.count,
