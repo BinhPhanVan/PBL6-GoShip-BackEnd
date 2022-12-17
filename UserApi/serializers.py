@@ -94,3 +94,14 @@ class ShipperUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shipper
         fields = ['avatar_url','distance_receive','birth_date']  
+
+class PhoneNumberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Account
+        fields = ['phone_number']
+class ShipperInfoSerializer(serializers.ModelSerializer):
+    address = AddressSerializer(required=True)
+    account = PhoneNumberSerializer(required=True)
+    class Meta:
+        model = Shipper
+        fields = '__all__'

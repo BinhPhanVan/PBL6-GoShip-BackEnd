@@ -428,7 +428,7 @@ class ShipperInfoViewSet(APIView):
         if shipper.exists():
             response = {
                 "status": "success",
-                "data": ShipperSerializer(shipper.first()).data,
+                "data": ShipperInfoSerializer(shipper.first()).data,
                 "detail": None
             }
             return Response(response, status=status.HTTP_202_ACCEPTED)

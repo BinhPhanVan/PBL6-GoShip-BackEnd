@@ -55,7 +55,7 @@ class Order(models.Model):
 
 
 class Rate(models.Model):
-    order = models.ForeignKey(Order, on_delete= models.CASCADE)
+    order = models.OneToOneField(Order, on_delete= models.CASCADE, related_name= 'rate_order')
     feedback = models.TextField(max_length= 1000, null = True, blank = True)
     rates = (
         (1, "1*"),
@@ -65,3 +65,5 @@ class Rate(models.Model):
         (5, "5*"),
     )
     rate = models.IntegerField(choices= rates)
+    class Meta:
+        db_table = 'Rate'
