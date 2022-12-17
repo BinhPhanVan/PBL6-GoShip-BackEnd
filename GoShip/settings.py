@@ -244,4 +244,10 @@ JAZZMIN_SETTINGS = {
     ],
     "show_sidebar": True,
 }
+# VNPAY CONFIG
+VNPAY_RETURN_URL = 'http://localhost:8000/swagger/'  # get from config
+VNPAY_PAYMENT_URL = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'  # get from config
+VNPAY_API_URL = 'https://sandbox.vnpayment.vn/merchant_webapi/merchant.html'
+VNPAY_TMN_CODE = '7PTD40NT'  # Website ID in VNPAY System, get from config
+VNPAY_HASH_SECRET_KEY = 'AZCVCCGEUZSMCBDIDTFKPADSRPSQZGZR'
 

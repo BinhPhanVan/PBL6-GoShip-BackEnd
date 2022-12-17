@@ -1,6 +1,9 @@
+from datetime import datetime
 from rest_framework import generics, viewsets
 from rest_framework.response import Response
 from rest_framework import status, permissions
+
+from OrderApi.vnpay import vnpay
 from .serializers import *
 from BaseApi.permissions import *
 from .models import *
@@ -486,3 +489,65 @@ class RateDetailView(GenericAPIView):
         #         "detail": "Đơn hàng không hợp lệ!"
         #     }
         #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
+import requests
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+class PaymentOrder(GenericAPIView):
+    queryset = Order.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsCustomerPermission]
+    serializer_class = PaymentSerializer
+    def post(self, request):
+        try: 
+            order_id = request.data.get('order_id')
+            order = Order.objects.get(id=order_id)
+            if order.customer.account.phone_number == request.user.phone_number:
+                amount = order.cost
+                order_desc = request.data.get('order_desc')
+                order_type = 'other'
+                bank_code = "NCB"
+                ipaddr = get_client_ip(request)
+                vnp = vnpay()
+                vnp.requestData['vnp_Version'] = '2.1.0'
+                vnp.requestData['vnp_Command'] = 'pay'
+                vnp.requestData['vnp_TmnCode'] = settings.VNPAY_TMN_CODE
+                vnp.requestData['vnp_Amount'] = amount * 100
+                vnp.requestData['vnp_CurrCode'] = 'VND'
+                vnp.requestData['vnp_TxnRef'] = order_id
+                vnp.requestData['vnp_OrderInfo'] = order_desc
+                vnp.requestData['vnp_OrderType'] = order_type
+                # Check language, default: vn
+                vnp.requestData['vnp_Locale'] = 'vn'
+                    # Check bank_code, if bank_code is empty, customer will be selected bank on VNPAY
+                if bank_code and bank_code != "":
+                    vnp.requestData['vnp_BankCode'] = bank_code
+                vnp.requestData['vnp_CreateDate'] = datetime.now().strftime('%Y%m%d%H%M%S')  # 20150410063022
+                vnp.requestData['vnp_IpAddr'] = ipaddr
+                vnp.requestData['vnp_ReturnUrl'] = settings.VNPAY_RETURN_URL
+                vnpay_payment_url = vnp.get_payment_url(settings.VNPAY_PAYMENT_URL, settings.VNPAY_HASH_SECRET_KEY)
+                # print(vnpay_payment_url)
+                return Response({
+                        "status": "success",
+                        "data": vnpay_payment_url,
+                        "detail": "Đang thực hiện thanh toán"
+                    }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                        "status": "error",
+                        "data": '',
+                        "detail": "Thanh toán thất bại!"
+                    }, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({
+                    "status": "error",
+                    "data": "",
+                    "detail": "Đơn hàng không hợp lệ!"
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+
+
