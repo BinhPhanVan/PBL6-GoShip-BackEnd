@@ -420,6 +420,7 @@ class RatingOrder(GenericAPIView):
                                                 feedback=request.data.get(
                                                     'feedback'),
                                                 rate=int(request.data.get('rate')))
+                    rate.save()
                     order.is_rating = True
                     order.save()
                     response = {
@@ -450,3 +451,34 @@ class RatingOrder(GenericAPIView):
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+class RateDetailView(GenericAPIView):
+    queryset = Rate.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = RateSerializer
+    
+    def get(self, request, order_id):
+        # try:
+        order = Order.objects.get(id=order_id)
+        if order.customer.account.phone_number == request.user.phone_number or order.shipper.account.phone_number == request.user.phone_number:
+            rate = Rate.objects.get(order_id=order_id)
+            response = {
+                "status": "success",
+                "data":  RateSerializer(rate).data,
+                "detail": None
+            }
+            return Response(response, status=status.HTTP_202_ACCEPTED)
+        else:
+            response = {
+                "status": "error",
+                "data": None,
+                "detail": "Đây không phải là đơn hàng của bạn!"
+            }
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        # except:
+        #     response = {
+        #         "status": "error",
+        #         "data": None,
+        #         "detail": "Đơn hàng không hợp lệ!"
+        #     }
+        #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
