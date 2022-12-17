@@ -19,6 +19,7 @@ from OrderApi.serializers import RateSerializer
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
@@ -56,7 +57,7 @@ class RegisterViewSet(viewsets.ViewSet, generics.CreateAPIView):
             {
                 "status": "error",
                 "data": None,
-                "detail": "Tài khoản không hợp lệ!"
+                "detail": "Tài khoản đã tồn tại!"
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -376,6 +377,7 @@ class RatingShipper(GenericAPIView):
     queryset = Rate.objects.all()
     permission_classes = [permissions.AllowAny]
     serializer_class = RateSerializer
+
     def get(self, request, shipper_id):
         rates = list(Rate.objects.filter(order__shipper_id=shipper_id))
         list_point = []
@@ -389,10 +391,12 @@ class RatingShipper(GenericAPIView):
         }
         return Response(response, status=status.HTTP_202_ACCEPTED)
 
+
 class ListRateShipper(GenericAPIView):
     queryset = Rate.objects.all()
     permission_classes = [permissions.AllowAny]
     serializer_class = RateSerializer
+
     def get(self, request, shipper_id):
         data = Rate.objects.filter(order__shipper_id=shipper_id)
         rates = list(data)
@@ -403,31 +407,32 @@ class ListRateShipper(GenericAPIView):
         response = {
             "status": "success",
             "data": {"mean": mean(list_point),
-                    "len": len(list_point),
-                    "rates": RateSerializer(data, many = True).data
-                    } 
-                    if len(list_point) 
-                    else "Chưa có thông tin đánh giá về tài xế",
+                     "len": len(list_point),
+                     "rates": RateSerializer(data, many=True).data
+                     }
+            if len(list_point)
+            else "Chưa có thông tin đánh giá về tài xế",
             "detail": None
         }
         return Response(response, status=status.HTTP_202_ACCEPTED)
 
+
 class ShipperInfoViewSet(APIView):
     queryset = Shipper.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get(self, request, shipper_id):
         shipper = Shipper.objects.filter(pk=shipper_id)
         if shipper.exists():
             response = {
-            "status": "success",
-            "data": ShipperSerializer(shipper.first()).data,
-            "detail": None
+                "status": "success",
+                "data": ShipperSerializer(shipper.first()).data,
+                "detail": None
             }
             return Response(response, status=status.HTTP_202_ACCEPTED)
         response = {
             "status": "error",
             "data": None,
             "detail": "shipper_id không hợp lệ!"
-            }
+        }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
