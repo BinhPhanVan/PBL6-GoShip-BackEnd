@@ -231,7 +231,7 @@ class OrderReceiveView(GenericAPIView):
     permission_classes = [permissions.IsAuthenticated, IsShipperPermission]
     serializer_class = OrderIdSerializer
 
-    def post(self, request):
+    def patch(self, request):
         order = Order.objects.filter(id=request.data.get('order_id'))
         if order.exists():
             order = order.first()
@@ -271,7 +271,7 @@ class OrderDelivery(GenericAPIView):
     permission_classes = [permissions.IsAuthenticated, IsShipperPermission]
     serializer_class = OrderIdSerializer
 
-    def post(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
         try:
             order = Order.objects.get(id=request.data.get('order_id'))
             if order.shipper.account.phone_number == request.user.phone_number:
@@ -311,14 +311,14 @@ class OrderDelivery(GenericAPIView):
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
-class OrderRequestConfirmDone(GenericAPIView):
+class OrderRequestConfirmDone(APIView):
     queryset = Order.objects.all()
     permission_classes = [permissions.IsAuthenticated, IsShipperPermission]
-    serializer_class = OrderIdSerializer
-
-    def post(self, request, *args, **kwargs):
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter('order_id',in_= openapi.IN_QUERY,description='ORDER ID',type=openapi.TYPE_INTEGER)])
+    def get(self, request, *args, **kwargs):
         try:
-            order = Order.objects.get(id=request.data.get('order_id'))
+            order = Order.objects.get(id=request.query_params.get('order_id'))
             if order.shipper.account.phone_number == request.user.phone_number:
                 if order.status.id == 3:
                     response = {
@@ -359,7 +359,7 @@ class OrderConfirmDone(GenericAPIView):
     permission_classes = [permissions.IsAuthenticated, IsCustomerPermission]
     serializer_class = OrderIdSerializer
 
-    def post(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
         try:
             order = Order.objects.get(id=request.data.get('order_id'))
             if order.customer.account.phone_number == request.user.phone_number:
