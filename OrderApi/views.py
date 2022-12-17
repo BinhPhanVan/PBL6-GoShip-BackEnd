@@ -161,7 +161,7 @@ class OrderView(GenericAPIView):
 
 class OrderDetailView(GenericAPIView):
     queryset = Order.objects.all()
-    permission_classes = [permissions.IsAuthenticated, IsShipperPermission]
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = OrderIdSerializer
 
     def get(self, request, order_id):
