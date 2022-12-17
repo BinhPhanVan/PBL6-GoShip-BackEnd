@@ -94,14 +94,18 @@ class StatusView(viewsets.ViewSet,
 
 class OrderView(GenericAPIView):
     queryset = Order.objects.all()
-    permission_classes = [permissions.IsAuthenticated, IsCustomerPermission]
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = OrderSerializer
     pagination_class = BasePagination
 
     def get(self, request):
         phone_number = request.user.phone_number
-        order = Order.objects.filter(
+        if request.user.role == 1:
+            order = Order.objects.filter(
             customer__account__phone_number=phone_number).order_by('-created_at')
+        else:
+            order = Order.objects.filter(
+            shipper__account__phone_number=phone_number).order_by('-created_at')
         paginator = Paginator(order, 10)
         page = request.GET.get('page')
         try:
