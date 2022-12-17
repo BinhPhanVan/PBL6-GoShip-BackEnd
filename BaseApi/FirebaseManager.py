@@ -43,7 +43,6 @@ def sendPush(title, msg, registration_token, phone_numbers, dataObject=None):
     # See documentation on defining a message payload.
     current_time = str(round(time.time() * 1000))[:-3]
     dataObject["time"] = current_time
-    print(registration_token)
     reference = db.reference('/')
     for phone_number in phone_numbers:
         reference.child("notification").child(phone_number).child(current_time).set({
@@ -52,19 +51,20 @@ def sendPush(title, msg, registration_token, phone_numbers, dataObject=None):
             "data": dataObject,
             "seen": False,
         })
-        
-    message = messaging.MulticastMessage(
-        notification=messaging.Notification(
-            title=title,
-            body=msg,
-        ),
-        data=dataObject,
-        tokens=registration_token,
-    )
 
-    response = messaging.send_multicast(message)
-    # Response is a message ID string.
-    print('Successfully sent message:', response)
+    for token in registration_token:
+        if token != '':
+            message = messaging.MulticastMessage(
+                notification=messaging.Notification(
+                    title=title,
+                    body=msg,
+                ),
+                data=dataObject,
+                tokens=[token],
+            )
+            response = messaging.send_multicast(message)
+            # Response is a message ID string.
+            print('Successfully sent message:', response)
 
 
 def sendNotificationToShipper(lat, long, order_id):

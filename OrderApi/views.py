@@ -365,7 +365,6 @@ class OrderConfirmDone(GenericAPIView):
             if order.customer.account.phone_number == request.user.phone_number:
                 if order.status.id == 3:
                     order.status = Status.objects.get(pk=5)
-                    order.save()
                     response = {
                         "status": "success",
                         "data":  OrderSerializer(order).data,
@@ -376,6 +375,7 @@ class OrderConfirmDone(GenericAPIView):
                         phone_number=shipper_phone_number)
                     sendNotificationUser(
                         account.token_device, shipper_phone_number, order.id, 6)
+                    order.save()
                     return Response(response, status=status.HTTP_202_ACCEPTED)
                 else:
                     response = {
