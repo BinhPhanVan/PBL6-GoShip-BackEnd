@@ -288,7 +288,7 @@ class UpdateDeviceTokenView(GenericAPIView):
 
 
 def check_pass(password):
-    if len(password) < 8:
+    if len(password) < 6:
         return False
     return True
 
@@ -304,7 +304,7 @@ class ChangePassword(GenericAPIView):
     queryset = Account.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
         serializer = ChangePassWordSerializer(data=request.data)
         if serializer.is_valid():
             old_password = request.data.get("old_password")
@@ -338,13 +338,15 @@ class ChangePassword(GenericAPIView):
                         status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserDetailView(GenericAPIView):
+class UserDetailView(APIView):
     serializer_class = PhoneNumberSerializer
     queryset = Account.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
-        phone_number = request.data.get('phone_number')
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter('phone_number',in_= openapi.IN_QUERY,description='phone_number',type=openapi.TYPE_STRING)])
+    def get(self, request, *args, **kwargs):
+        phone_number = request.query_params.get('phone_number')
         account = Account.objects.filter(phone_number=phone_number)
         if account.exists():
             if account.first().role == 1:

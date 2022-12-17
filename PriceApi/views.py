@@ -14,6 +14,7 @@ from rest_framework.decorators import (
     authentication_classes,
     permission_classes,
 )
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from numpy import sin, cos, arccos, pi, round
 
@@ -44,19 +45,21 @@ def getDistanceBetweenPointsNew(latitude1, longitude1, latitude2, longitude2, un
 
 
 # Create your views here.
-@swagger_auto_schema(methods=['post'], request_body=GetDistanceSerializer)
-@api_view(["POST"])
+@swagger_auto_schema(method = 'GET',manual_parameters=[
+        openapi.Parameter('start',in_= openapi.IN_QUERY,description='Address Start',type=openapi.TYPE_STRING,example = 'latitude, longitude'),
+        openapi.Parameter('end',in_= openapi.IN_QUERY,description='Address End',type=openapi.TYPE_STRING, example = 'latitude, longitude')])
+@api_view(["GET"])
 @authentication_classes([])
 @permission_classes([])
 def get_distance(request):
     try:
-        print(request.user)
-        start_address = request.data.get('start_address')
-        end_address = request.data.get('end_address')
-        latitude1 = float(start_address["latitude"])
-        latitude2 = float(end_address["latitude"])
-        longitude1 = float(start_address["longitude"])
-        longitude2 = float(end_address["longitude"])
+
+        start_address = request.query_params.get('start').split(',')
+        end_address = request.query_params.get('end').split(',')
+        latitude1 = float(start_address[0])
+        latitude2 = float(end_address[0])
+        longitude1 = float(start_address[1])
+        longitude2 = float(end_address[1])
         distance = getDistanceBetweenPointsNew(latitude1, longitude1, latitude2, longitude2, 'kilometers')
     except Exception:
         response = {
@@ -72,14 +75,16 @@ def get_distance(request):
     }
     return Response(response, status=status.HTTP_200_OK)
 
-@swagger_auto_schema(methods=['post'], request_body=GetPriceSerializer)
-@api_view(["POST"])
+@swagger_auto_schema(method = 'GET',manual_parameters=[
+        openapi.Parameter('distance',in_= openapi.IN_QUERY,description='Distance (m)',type=openapi.TYPE_STRING,example = '11'),
+        openapi.Parameter('is_protected',in_= openapi.IN_QUERY,description='is_protected (1 or 2)',type=openapi.TYPE_INTEGER, example = 1)])
+@api_view(["GET"])
 @authentication_classes([])
 @permission_classes([])
 def get_price(request, *args, **kwargs):
     try: 
         price =  Price.objects.first()
-        km = float(request.data.get('distance'))
+        km = float(request.query_params.get('distance'))
         initial_price = price.initial_price
         anchor = price.anchor
         extra_price = 0
@@ -93,7 +98,7 @@ def get_price(request, *args, **kwargs):
             if i > anchor and (i - anchor) * price.price_percent > 70:
                 money += price.extra_price * 30 / 100;   
         print(money)
-        if request.data.get('is_protected') == 1:
+        if int(request.query_params.get('is_protected')) == 2:
            extra_price =  money * (price.price_protect / 100)
     except Exception:
         response = {
