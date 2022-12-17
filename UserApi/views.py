@@ -16,7 +16,8 @@ from django.db.models import Avg
 from statistics import mean
 from OrderApi.serializers import RateSerializer
 # Create your views here.
-
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -410,3 +411,23 @@ class ListRateShipper(GenericAPIView):
             "detail": None
         }
         return Response(response, status=status.HTTP_202_ACCEPTED)
+
+class ShipperInfoViewSet(APIView):
+    queryset = Shipper.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, shipper_id):
+        shipper = Shipper.objects.filter(pk=shipper_id)
+        if shipper.exists():
+            response = {
+            "status": "success",
+            "data": ShipperSerializer(shipper.first()).data,
+            "detail": None
+            }
+            return Response(response, status=status.HTTP_202_ACCEPTED)
+        response = {
+            "status": "error",
+            "data": None,
+            "detail": "shipper_id không hợp lệ!"
+            }
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
