@@ -125,7 +125,7 @@ class ConfirmShipper(GenericAPIView):
         if account.exists():
             data_info = request.data.get(
                 'identification_info')
-            info = data_info.split('|')
+            info = data_info.split('|')   
             shipper = Shipper.objects.filter(
                 account__phone_number=request.user.phone_number)
             shipper.update(gender=request.data.get('gender'),
@@ -139,9 +139,9 @@ class ConfirmShipper(GenericAPIView):
                            identification_info=data_info,
                            url_face_video=request.data.get('url_face_video'),
                            confirmed=1,
-                           birth_date=datetime(day=int(info[3][:2]), month=int(
-                               info[3][2:4]), year=int(info[3][4:])),
-                           home_address=info[5]
+                        #    birth_date=datetime(day=int(info[3][:2]), month=int(
+                        #        info[3][2:4]), year=int(info[3][4:])),
+                        #    home_address=info[5]
                            )
             response = {
                 "status": "success",
