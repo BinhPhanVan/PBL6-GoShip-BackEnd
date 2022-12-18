@@ -26,8 +26,8 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh "docker rm pbl6-goship-backend_web_1 -f"
-                        sh "docker rmi pbl6-goship-backend_web -f"
+                        sh "docker rm pbl6-goship_api -f"
+                        sh "docker rmi pbl6-goship -f"
                         sh 'docker rm /$(docker ps --filter status=exited -q)'
 
                     }

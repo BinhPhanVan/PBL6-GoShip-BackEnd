@@ -14,6 +14,8 @@ services:
       - /tmp/app/mysqld:/var/run/mysqld
       - ./db:/var/lib/mysql
   web:
+    container_name: pbl6-goship_api
+    image: pbl6-goship
     build: .
     command: python manage.py runserver 0.0.0.0:8000
     ports:
