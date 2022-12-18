@@ -44,6 +44,7 @@ def sendPush(title, msg, registration_token, phone_numbers, dataObject=None):
     current_time = str(round(time.time() * 1000))[:-3]
     dataObject["time"] = current_time
     reference = db.reference('/')
+    print(registration_token)
     for phone_number in phone_numbers:
         reference.child("notification").child(phone_number).child(current_time).set({
             "title": title,
@@ -71,16 +72,17 @@ def sendNotificationToShipper(lat, long, order_id):
     reference = db.reference('/')
     result = reference.child("location").get()
     shippers = Shipper.objects.all()
+    tokens = []
+    phone_numbers = []
     for key in result.keys():
+        print(key)
         latitude = result[key]["latitude"]
         longitude = result[key]["longitude"]
         distance = getDistanceBetweenPointsNew(
             lat, long, latitude, longitude, 'kilometers')
         if lat == latitude and long == longitude:
             distance = 0
-        shipper = shippers.filter(account__phone_number=key)
-        tokens = []
-        phone_numbers = []
+        shipper = shippers.filter(account__phone_number=key)  
         if shipper.exists():
             shipper = shipper.first()
             if distance <= shipper.distance_receive:
