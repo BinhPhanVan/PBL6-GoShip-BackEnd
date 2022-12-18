@@ -127,7 +127,7 @@ class RateSerializer(serializers.ModelSerializer):
             },
         }
 
-class PaymentSerializer(serializers.Serializer):
+class PaySerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
     order_desc = serializers.CharField()
 

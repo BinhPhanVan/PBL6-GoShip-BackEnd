@@ -498,10 +498,10 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
-class PaymentOrder(GenericAPIView):
+class PayOrder(GenericAPIView):
     queryset = Order.objects.all()
     permission_classes = [permissions.IsAuthenticated, IsCustomerPermission]
-    serializer_class = PaymentSerializer
+    serializer_class = PaySerializer
     def post(self, request):
         try: 
             order_id = request.data.get('order_id')
