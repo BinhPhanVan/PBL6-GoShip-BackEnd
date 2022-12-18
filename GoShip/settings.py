@@ -251,3 +251,47 @@ VNPAY_API_URL = 'https://sandbox.vnpayment.vn/merchant_webapi/merchant.html'
 VNPAY_TMN_CODE = '7PTD40NT'  # Website ID in VNPAY System, get from config
 VNPAY_HASH_SECRET_KEY = 'AZCVCCGEUZSMCBDIDTFKPADSRPSQZGZR'
 
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': '165.232.160.112:9200'
+    },
+}
+
+LOGGING = {
+  'version': 1,
+  'disable_existing_loggers': False,
+  'formatters': {
+      'simple': {
+            'format': 'velname)s %(message)s'
+        },
+  },
+  'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'logstash': {
+            'level': 'INFO',
+            'class': 'logstash.TCPLogstashHandler',
+            'host': '165.232.160.112',
+            'port': 1309, # Default value: 5404
+            'version': 1, # Version of logstash event schema. Default value: 0 (for backward compatibility of the library)
+            'message_type': 'django',  # 'type' field in logstash message. Default value: 'logstash'.
+            'fqdn': False, # Fully qualified domain name. Default value: false.
+            'tags': ['django.request'], # list of tags. Default: None.
+        },
+  },
+  'loggers': {
+        'django.request': {
+            'handlers': ['logstash'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django': {
+            'handlers': ['console', 'logstash'],
+            'propagate': True,
+        },
+    }
+}
+
