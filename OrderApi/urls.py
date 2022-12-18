@@ -18,5 +18,6 @@ urlpatterns = [
     path('order/confirm-done/', OrderConfirmDone.as_view(), name='confirm-done'),
     path('order/rate/', RatingOrder.as_view(), name='rating-order'),
     path('order/<int:order_id>/rate-detail/', RateDetailView.as_view(), name='rate-detail'),
+    path('order/payment/', PaymentOrder.as_view(), name='payment-order'),
 ]
 urlpatterns += router.urls

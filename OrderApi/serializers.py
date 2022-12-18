@@ -1,3 +1,4 @@
+
 from rest_framework import serializers
 from .models import Payment, Category, Status, Order, Rate
 from UserApi.serializers import AddressSerializer
@@ -125,3 +126,8 @@ class RateSerializer(serializers.ModelSerializer):
                 'read_only': True
             },
         }
+
+class PaymentSerializer(serializers.Serializer):
+    order_id = serializers.IntegerField()
+    order_desc = serializers.CharField()
+
