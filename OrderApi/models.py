@@ -33,7 +33,20 @@ class Status(models.Model):
     class Meta:
         db_table = 'Status'
 
-
+class Rate(models.Model):
+    feedback = models.TextField(max_length= 1000, null = True, blank = True)
+    rates = (
+        (1, "1*"),
+        (2, "2*"),
+        (3, "3*"),
+        (4, "4*"),
+        (5, "5*"),
+    )
+    rate = models.IntegerField(choices= rates)
+    class Meta:
+        db_table = 'Rate'
+    def __str__(self):
+        return 'Đánh giá ' +str(self.rate) + '*'
 class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     shipper = models.ForeignKey(Shipper,  on_delete=models.CASCADE, blank=True, null=True) #null = True
@@ -49,21 +62,11 @@ class Order(models.Model):
     address_end = models.OneToOneField(Address,  on_delete=models.CASCADE, related_name='address_end')
     status = models.ForeignKey(Status, on_delete=models.CASCADE)
     img_order = models.CharField(max_length=255, null=True, blank=True)
+    rate = models.OneToOneField(Rate, on_delete= models.CASCADE, related_name= 'rate_order', blank=True, null=True)
     is_rating = models.BooleanField(default=False)
     def __str__(self):
         return 'Đơn yêu cầu giao hàng số ' +str(self.id)
-
-
-class Rate(models.Model):
-    order = models.OneToOneField(Order, on_delete= models.CASCADE, related_name= 'rate_order')
-    feedback = models.TextField(max_length= 1000, null = True, blank = True)
-    rates = (
-        (1, "1*"),
-        (2, "2*"),
-        (3, "3*"),
-        (4, "4*"),
-        (5, "5*"),
-    )
-    rate = models.IntegerField(choices= rates)
+    
     class Meta:
-        db_table = 'Rate'
+        db_table = 'Order'
+

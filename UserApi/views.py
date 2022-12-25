@@ -120,40 +120,44 @@ class ConfirmShipper(GenericAPIView):
     serializer_class = ConfirmShipperSerializer
 
     def patch(self, request):
-        account = Account.objects.filter(
-            phone_number=request.user.phone_number)
-        if account.exists():
-            data_info = request.data.get(
-                'identification_info')
-            info = data_info.split('|')   
-            shipper = Shipper.objects.filter(
-                account__phone_number=request.user.phone_number)
-            shipper.update(gender=request.data.get('gender'),
-                           name=request.data.get('name'),
-                           address=Address.objects.create(
-                               **request.data.get('address')),
-                           url_identification_top=request.data.get(
-                               'url_identification_top'),
-                           url_identification_back=request.data.get(
-                               'url_identification_back'),
-                           identification_info=data_info,
-                           url_face_video=request.data.get('url_face_video'),
-                           confirmed=1,
-                        #    birth_date=datetime(day=int(info[3][:2]), month=int(
-                        #        info[3][2:4]), year=int(info[3][4:])),
-                        #    home_address=info[5]
-                           )
-            response = {
-                "status": "success",
-                "data": ShipperSerializer(shipper.first()).data,
-                "detail": None
-            }
-            return Response(response, status=status.HTTP_200_OK)
         response = {
-            "status": "error",
-            "data": None,
-            "detail": "Dữ liệu không hợp lệ!"
-        }
+                "status": "error",
+                "data": None,
+                "detail": "Tài khoản không hợp lệ!"
+            }
+        try:
+            account = Account.objects.filter(
+                phone_number=request.user.phone_number)
+            if account.exists():
+                data_info = request.data.get(
+                    'identification_info')
+                info = data_info.split('|')   
+                birth_date =datetime(day=int(info[3][:2]), month=int(info[3][2:4]), year=int(info[3][4:]))
+                home_address = info[5]
+                shipper = Shipper.objects.filter(
+                    account__phone_number=request.user.phone_number)
+                shipper.update(gender=request.data.get('gender'),
+                            name=request.data.get('name'),
+                            address=Address.objects.create(
+                                **request.data.get('address')),
+                            url_identification_top=request.data.get(
+                                'url_identification_top'),
+                            url_identification_back=request.data.get(
+                                'url_identification_back'),
+                            identification_info=data_info,
+                            url_face_video=request.data.get('url_face_video'),
+                            confirmed=1,
+                            birth_date=birth_date,
+                            home_address=home_address
+                            )
+                response = {
+                    "status": "success",
+                    "data": ShipperSerializer(shipper.first()).data,
+                    "detail": None
+                }
+                return Response(response, status=status.HTTP_200_OK)
+        except:
+            response["detail"] = "Căn cước công dân không hợp lệ!"
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
 

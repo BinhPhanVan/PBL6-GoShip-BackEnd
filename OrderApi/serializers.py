@@ -45,6 +45,13 @@ class CustomerOrderSerializer(serializers.ModelSerializer):
         model = Customer
         fields = '__all__'
 
+
+class RateSerializer(serializers.Serializer):
+    feedback = serializers.CharField(default = 'Good job')
+    rate = serializers.IntegerField(default = 5)
+    order_id = serializers.IntegerField(default = 10)
+
+
 class OrderDetailSerializer(serializers.ModelSerializer):
     address_start = AddressSerializer(required=True)
     address_end = AddressSerializer(required=True)
@@ -52,7 +59,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
     customer = CustomerOrderSerializer(required=True)
     category = CategorySerializer(required=True)
     status = StatusSerializer(required=True)
-
+    rate =  RateSerializer(required=True)
     class Meta:
         model= Order
         fields = '__all__' 
@@ -78,7 +85,11 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             'cost': {
                 'read_only': True
             },
+            'rate': {
+                'read_only': True
+            },
         }
+
 
 class OrderSerializer(serializers.ModelSerializer):
     address_start = AddressSerializer(required=True)
@@ -111,21 +122,15 @@ class OrderSerializer(serializers.ModelSerializer):
             'status': {
                 'read_only': True
             },
+            'rate': {
+                'read_only': True
+            },
         }
 
 
 class  OrderIdSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
 
-class RateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model= Rate
-        fields = '__all__' 
-        extra_kwargs = {
-            'id': {
-                'read_only': True
-            },
-        }
 
 class PaySerializer(serializers.Serializer):
     order_id = serializers.IntegerField()

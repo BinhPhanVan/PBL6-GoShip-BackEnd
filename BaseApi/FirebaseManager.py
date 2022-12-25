@@ -54,7 +54,7 @@ def sendPush(title, msg, registration_token, phone_numbers, dataObject=None):
         })
 
     for token in registration_token:
-        if token != '':
+        if token != '' and isinstance(token, str):
             message = messaging.MulticastMessage(
                 notification=messaging.Notification(
                     title=title,
