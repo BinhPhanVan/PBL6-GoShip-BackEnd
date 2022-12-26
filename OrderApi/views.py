@@ -224,6 +224,7 @@ class OrderStatusView(GenericAPIView):
                 "detail": "status_id không tồn tại"
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            
         if status_id != -1:
             if request.user.role == 1:
                 orders = Order.objects.filter(
