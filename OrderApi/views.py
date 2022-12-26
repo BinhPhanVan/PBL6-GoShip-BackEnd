@@ -1,3 +1,4 @@
+import requests
 from datetime import datetime
 from rest_framework import generics, viewsets
 from rest_framework.response import Response
@@ -105,17 +106,17 @@ class OrderView(GenericAPIView):
         phone_number = request.user.phone_number
         if request.user.role == 1:
             order = Order.objects.filter(
-            customer__account__phone_number=phone_number).order_by('-created_at')
+                customer__account__phone_number=phone_number).order_by('-created_at')
         else:
             order = Order.objects.filter(
-            shipper__account__phone_number=phone_number).order_by('-created_at')
+                shipper__account__phone_number=phone_number).order_by('-created_at')
         paginator = Paginator(order, 10)
         page = request.GET.get('page')
         try:
             orders = paginator.page(page)
         except:
             orders = paginator.page(1)
-        serializer = OrderSerializer(orders, many=True)
+        serializer = OrderDetailSerializer(orders, many=True)
         response = {
             "status": "success",
             "data": {
@@ -128,42 +129,51 @@ class OrderView(GenericAPIView):
         return Response(response, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = OrderSerializer(data=request.data)
-        if serializer.is_valid():
-            order = Order(
-                customer=Customer.objects.filter(
-                    account__phone_number=request.user.phone_number).first(),
-                address_start=Address.objects.create(
-                    **request.data.get('address_start')),
-                address_end=Address.objects.create(
-                    **request.data.get('address_end')),
-                distance=serializer.validated_data.get('distance'),
-                customer_notes=serializer.validated_data.get('customer_notes'),
-                img_order=serializer.validated_data.get('img_order'),
-                payment=Payment.objects.filter(
-                    id=request.data.get('payment')).first(),
-                category=Category.objects.filter(
-                    id=request.data.get('category')).first(),
-                cost=get_price(serializer.validated_data.get('distance'), Category.objects.filter(
-                    id=request.data.get('category')).first().is_protected),
-                description=serializer.validated_data.get('description'),
-                status=Status.objects.filter(id=1).first()
-            )
-            order.save()
-            firebase_database.sendNotificationToShipper(lat=float(
-                order.address_start.latitude), long=float(order.address_start.longitude), order_id=order.id)
+        try:
+            serializer = OrderSerializer(data=request.data)
+            if serializer.is_valid():
+                order = Order(
+                    customer=Customer.objects.filter(
+                        account__phone_number=request.user.phone_number).first(),
+                    address_start=Address.objects.create(
+                        **request.data.get('address_start')),
+                    address_end=Address.objects.create(
+                        **request.data.get('address_end')),
+                    distance=serializer.validated_data.get('distance'),
+                    customer_notes=serializer.validated_data.get(
+                        'customer_notes'),
+                    img_order=serializer.validated_data.get('img_order'),
+                    payment=Payment.objects.filter(
+                        id=request.data.get('payment')).first(),
+                    category=Category.objects.filter(
+                        id=request.data.get('category')).first(),
+                    cost=get_price(serializer.validated_data.get('distance'), Category.objects.filter(
+                        id=request.data.get('category')).first().is_protected),
+                    description=serializer.validated_data.get('description'),
+                    status=Status.objects.filter(id=1).first()
+                )
+                order.save()
+                firebase_database.sendNotificationToShipper(lat=float(
+                    order.address_start.latitude), long=float(order.address_start.longitude), order_id=order.id)
+                response = {
+                    "status": "success",
+                    "data":  OrderSerializer(order).data,
+                    "detail": None
+                }
+                return Response(response, status=status.HTTP_200_OK)
             response = {
-                "status": "success",
-                "data":  OrderSerializer(order).data,
-                "detail": None
+                "status": "error",
+                "data": None,
+                "detail": "Dữ liệu không hợp lệ!",
             }
-            return Response(response, status=status.HTTP_200_OK)
-        response = {
-            "status": "error",
-            "data": None,
-            "detail": "Dữ liệu không hợp lệ!",
-        }
-        return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
+        except ValueError as err:
+            response = {
+                "status": "error",
+                "data": None,
+                "detail": "Vị trí kinh độ và vĩ độ phải dưới dạng số thực!",
+            }
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
 
 class OrderDetailView(GenericAPIView):
@@ -188,18 +198,20 @@ class OrderDetailView(GenericAPIView):
         }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+
 class OrderStatusView(GenericAPIView):
     queryset = Order.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = OrderSerializer
 
     @swagger_auto_schema(manual_parameters=[
-        openapi.Parameter('page',in_= openapi.IN_QUERY,description='Page Number',type=openapi.TYPE_INTEGER),
-        openapi.Parameter('status_id',in_= openapi.IN_QUERY,description='Status ID',type=openapi.TYPE_INTEGER)])
+        openapi.Parameter('page', in_=openapi.IN_QUERY,
+                          description='Page Number', type=openapi.TYPE_INTEGER),
+        openapi.Parameter('status_id', in_=openapi.IN_QUERY, description='Status ID', type=openapi.TYPE_INTEGER)])
     def get(self, request):
         status_id = int(request.query_params.get('status_id'))
         page = int(request.query_params.get('page'))
-        if  status_id > 5:
+        if status_id > 5:
             response = {
                 "status": "error",
                 "data": None,
@@ -207,24 +219,26 @@ class OrderStatusView(GenericAPIView):
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         if request.user.role == 1:
-            orders = Order.objects.filter(status_id=status_id, customer__account__phone_number = request.user.phone_number).order_by('-created_at')
+            orders = Order.objects.filter(
+                status_id=status_id, customer__account__phone_number=request.user.phone_number).order_by('-created_at')
         if request.user.role == 2:
-            orders = Order.objects.filter(status_id=status_id, shipper__account__phone_number  = request.user.phone_number).order_by('-created_at')
+            orders = Order.objects.filter(
+                status_id=status_id, shipper__account__phone_number=request.user.phone_number).order_by('-created_at')
         paginator = Paginator(orders, 10)
         response = {
             "status": "success",
             "detail": None,
-            }
+        }
         try:
             orders = paginator.page(page)
             serializer = OrderDetailSerializer(orders, many=True)
             response = {
-            "status": "success",
-            "data":{
-                "orders": serializer.data,
-                "total": paginator.count,
+                "status": "success",
+                "data": {
+                    "orders": serializer.data,
+                    "total": paginator.count,
                 },
-            "detail": None
+                "detail": None
             }
         except:
             response["data"] = {
@@ -232,6 +246,7 @@ class OrderStatusView(GenericAPIView):
                 "total": paginator.count,
             },
         return Response(response, status=status.HTTP_200_OK)
+
 
 class OrderReceiveView(GenericAPIView):
     queryset = Order.objects.all()
@@ -321,8 +336,9 @@ class OrderDelivery(GenericAPIView):
 class OrderRequestConfirmDone(APIView):
     queryset = Order.objects.all()
     permission_classes = [permissions.IsAuthenticated, IsShipperPermission]
+
     @swagger_auto_schema(manual_parameters=[
-        openapi.Parameter('order_id',in_= openapi.IN_QUERY,description='ORDER ID',type=openapi.TYPE_INTEGER)])
+        openapi.Parameter('order_id', in_=openapi.IN_QUERY, description='ORDER ID', type=openapi.TYPE_INTEGER)])
     def get(self, request, *args, **kwargs):
         try:
             order = Order.objects.get(id=request.query_params.get('order_id'))
@@ -413,26 +429,27 @@ class RatingOrder(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            order = Order.objects.get(id=request.data.get('order'))
+            order = Order.objects.get(id=int(request.data.get('order_id')))
             if order.customer.account.phone_number == request.user.phone_number:
                 if order.status.id == 5:
                     if order.is_rating:
                         response = {
-                        "status": "error",
-                        "data":  None,
-                        "detail": "Đơn hàng đã được đánh giá!"
+                            "status": "error",
+                            "data":  None,
+                            "detail": "Đơn hàng đã được đánh giá!"
                         }
                         return Response(response, status=status.HTTP_406_NOT_ACCEPTABLE)
-                    rate = Rate.objects.create(order=order,
-                                                feedback=request.data.get(
-                                                    'feedback'),
-                                                rate=int(request.data.get('rate')))
+                    rate = Rate.objects.create(
+                        feedback=request.data.get(
+                            'feedback'),
+                        rate=int(request.data.get('rate')))
                     rate.save()
                     order.is_rating = True
+                    order.rate = rate
                     order.save()
                     response = {
                         "status": "success",
-                        "data":  RateSerializer(rate).data,
+                        "data":  OrderDetailSerializer(order).data,
                         "detail": None
                     }
                     return Response(response, status=status.HTTP_202_ACCEPTED)
@@ -454,42 +471,43 @@ class RatingOrder(GenericAPIView):
             response = {
                 "status": "error",
                 "data": None,
+                "detail": "Đơn hàng không tồn tại!"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RateDetailView(GenericAPIView):
+    queryset = Order.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = OrderDetailSerializer
+
+    def get(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+            if order.customer.account.phone_number == request.user.phone_number or order.shipper.account.phone_number == request.user.phone_number:
+                response = {
+                    "status": "success",
+                    "data":  OrderDetailSerializer(order).data,
+                    "detail": None
+                }
+                return Response(response, status=status.HTTP_202_ACCEPTED)
+            else:
+                response = {
+                    "status": "error",
+                    "data": None,
+                    "detail": "Đây không phải là đơn hàng của bạn!"
+                }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        except:
+            response = {
+                "status": "error",
+                "data": None,
                 "detail": "Đơn hàng không hợp lệ!"
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-class RateDetailView(GenericAPIView):
-    queryset = Rate.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = RateSerializer
-    
-    def get(self, request, order_id):
-        # try:
-        order = Order.objects.get(id=order_id)
-        if order.customer.account.phone_number == request.user.phone_number or order.shipper.account.phone_number == request.user.phone_number:
-            rate = Rate.objects.get(order_id=order_id)
-            response = {
-                "status": "success",
-                "data":  RateSerializer(rate).data,
-                "detail": None
-            }
-            return Response(response, status=status.HTTP_202_ACCEPTED)
-        else:
-            response = {
-                "status": "error",
-                "data": None,
-                "detail": "Đây không phải là đơn hàng của bạn!"
-            }
-        return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        # except:
-        #     response = {
-        #         "status": "error",
-        #         "data": None,
-        #         "detail": "Đơn hàng không hợp lệ!"
-        #     }
-        #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
-import requests
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
@@ -498,12 +516,14 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
+
 class PayOrder(GenericAPIView):
     queryset = Order.objects.all()
     permission_classes = [permissions.IsAuthenticated, IsCustomerPermission]
     serializer_class = PaySerializer
+
     def post(self, request):
-        try: 
+        try:
             order_id = request.data.get('order_id')
             order = Order.objects.get(id=order_id)
             if order.customer.account.phone_number == request.user.phone_number:
@@ -523,31 +543,30 @@ class PayOrder(GenericAPIView):
                 vnp.requestData['vnp_OrderType'] = order_type
                 # Check language, default: vn
                 vnp.requestData['vnp_Locale'] = 'vn'
-                    # Check bank_code, if bank_code is empty, customer will be selected bank on VNPAY
+                # Check bank_code, if bank_code is empty, customer will be selected bank on VNPAY
                 if bank_code and bank_code != "":
                     vnp.requestData['vnp_BankCode'] = bank_code
-                vnp.requestData['vnp_CreateDate'] = datetime.now().strftime('%Y%m%d%H%M%S')  # 20150410063022
+                vnp.requestData['vnp_CreateDate'] = datetime.now().strftime(
+                    '%Y%m%d%H%M%S')  # 20150410063022
                 vnp.requestData['vnp_IpAddr'] = ipaddr
                 vnp.requestData['vnp_ReturnUrl'] = settings.VNPAY_RETURN_URL
-                vnpay_payment_url = vnp.get_payment_url(settings.VNPAY_PAYMENT_URL, settings.VNPAY_HASH_SECRET_KEY)
+                vnpay_payment_url = vnp.get_payment_url(
+                    settings.VNPAY_PAYMENT_URL, settings.VNPAY_HASH_SECRET_KEY)
                 # print(vnpay_payment_url)
                 return Response({
-                        "status": "success",
-                        "data": vnpay_payment_url,
-                        "detail": "Đang thực hiện thanh toán"
-                    }, status=status.HTTP_200_OK)
+                    "status": "success",
+                    "data": vnpay_payment_url,
+                    "detail": "Đang thực hiện thanh toán"
+                }, status=status.HTTP_200_OK)
             else:
                 return Response({
-                        "status": "error",
-                        "data": '',
-                        "detail": "Thanh toán thất bại!"
-                    }, status=status.HTTP_400_BAD_REQUEST)
+                    "status": "error",
+                    "data": '',
+                    "detail": "Thanh toán thất bại!"
+                }, status=status.HTTP_400_BAD_REQUEST)
         except:
             return Response({
-                    "status": "error",
-                    "data": "",
-                    "detail": "Đơn hàng không hợp lệ!"
-                }, status=status.HTTP_400_BAD_REQUEST)
-                
-
-
+                "status": "error",
+                "data": "",
+                "detail": "Đơn hàng không hợp lệ!"
+            }, status=status.HTTP_400_BAD_REQUEST)
