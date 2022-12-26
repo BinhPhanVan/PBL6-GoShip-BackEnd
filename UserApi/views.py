@@ -39,14 +39,14 @@ class RegisterViewSet(viewsets.ViewSet, generics.CreateAPIView):
                 username=request.data.get('phone_number'),
                 password=request.data.get('password')
             )
-            token = MyTokenObtainPairSerializer.get_token(account)
+            refresh = MyTokenObtainPairSerializer.get_token(account)
             response = {
                 "status": "success",
                 "data": {
                     'role': account.role,
                     'phone_number': account.phone_number,
-                    'access_token': str(token),
-                    'refresh_token': str(MyTokenObtainPairSerializer.get_token(account)),
+                    'refresh_token': str(refresh),
+                    'access_token': str(refresh.access_token),
                     "detail": "Đăng ký thành công!"
                 },
                 "detail": None
