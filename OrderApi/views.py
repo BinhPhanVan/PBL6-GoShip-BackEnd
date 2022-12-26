@@ -23,7 +23,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .utils import get_price
 from BaseApi.FirebaseManager import sendNotificationUser
-
+from django.db.models import Q
 
 class PaymentView(viewsets.ViewSet,
                   generics.ListCreateAPIView,
@@ -209,8 +209,14 @@ class OrderStatusView(GenericAPIView):
                           description='Page Number', type=openapi.TYPE_INTEGER),
         openapi.Parameter('status_id', in_=openapi.IN_QUERY, description='Status ID', type=openapi.TYPE_INTEGER)])
     def get(self, request):
-        status_id = int(request.query_params.get('status_id'))
-        page = int(request.query_params.get('page'))
+        try:
+            page = int(request.query_params.get('page'))
+        except:
+            page = 1
+        try:
+            status_id = int(request.query_params.get('status_id'))
+        except:
+            status_id = -1
         if status_id > 5:
             response = {
                 "status": "error",
@@ -218,13 +224,17 @@ class OrderStatusView(GenericAPIView):
                 "detail": "status_id không tồn tại"
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        if request.user.role == 1:
+        if status_id != -1:
+            if request.user.role == 1:
+                orders = Order.objects.filter(
+                    status_id=status_id, customer__account__phone_number=request.user.phone_number).order_by('-created_at')
+            if request.user.role == 2:
+                orders = Order.objects.filter(
+                    status_id=status_id, shipper__account__phone_number=request.user.phone_number).order_by('-created_at')
+        else:
             orders = Order.objects.filter(
-                status_id=status_id, customer__account__phone_number=request.user.phone_number).order_by('-created_at')
-        if request.user.role == 2:
-            orders = Order.objects.filter(
-                status_id=status_id, shipper__account__phone_number=request.user.phone_number).order_by('-created_at')
-        paginator = Paginator(orders, 10)
+                    Q(shipper__account__phone_number=request.user.phone_number) | Q(customer__account__phone_number=request.user.phone_number)).order_by('-created_at')
+        paginator = Paginator(orders, 5)
         response = {
             "status": "success",
             "detail": None,
