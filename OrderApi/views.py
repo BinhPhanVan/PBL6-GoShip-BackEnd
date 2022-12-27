@@ -441,7 +441,7 @@ class OrderConfirmDone(GenericAPIView):
 class RatingOrder(GenericAPIView):
     queryset = Rate.objects.all()
     permission_classes = [permissions.IsAuthenticated, IsCustomerPermission]
-    serializer_class = RateSerializer
+    serializer_class = RateCustomSerializer
 
     def post(self, request, *args, **kwargs):
         try:

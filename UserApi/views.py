@@ -122,35 +122,37 @@ class ConfirmShipper(GenericAPIView):
 
     def patch(self, request):
         response = {
-                "status": "error",
-                "data": None,
-                "detail": "Tài khoản không hợp lệ!"
-            }
+            "status": "error",
+            "data": None,
+            "detail": "Tài khoản không hợp lệ!"
+        }
         try:
             account = Account.objects.filter(
                 phone_number=request.user.phone_number)
             if account.exists():
                 data_info = request.data.get(
                     'identification_info')
-                info = data_info.split('|')   
-                birth_date =datetime(day=int(info[3][:2]), month=int(info[3][2:4]), year=int(info[3][4:]))
+                info = data_info.split('|')
+                birth_date = datetime(day=int(info[3][:2]), month=int(
+                    info[3][2:4]), year=int(info[3][4:]))
                 home_address = info[5]
                 shipper = Shipper.objects.filter(
                     account__phone_number=request.user.phone_number)
                 shipper.update(gender=request.data.get('gender'),
-                            name=request.data.get('name'),
-                            address=Address.objects.create(
-                                **request.data.get('address')),
-                            url_identification_top=request.data.get(
-                                'url_identification_top'),
-                            url_identification_back=request.data.get(
-                                'url_identification_back'),
-                            identification_info=data_info,
-                            url_face_video=request.data.get('url_face_video'),
-                            confirmed=1,
-                            birth_date=birth_date,
-                            home_address=home_address
-                            )
+                               name=request.data.get('name'),
+                               address=Address.objects.create(
+                    **request.data.get('address')),
+                    url_identification_top=request.data.get(
+                    'url_identification_top'),
+                    url_identification_back=request.data.get(
+                    'url_identification_back'),
+                    identification_info=data_info,
+                    url_face_video=request.data.get(
+                                   'url_face_video'),
+                    confirmed=1,
+                    birth_date=birth_date,
+                    home_address=home_address
+                )
                 response = {
                     "status": "success",
                     "data": ShipperSerializer(shipper.first()).data,
@@ -191,17 +193,28 @@ class ShipperUpdateSerializer(GenericAPIView):
     serializer_class = ShipperUpdateSerializer
 
     def put(self, request):
-        shipper = Shipper.objects.get(
-            account__phone_number=request.user.phone_number)
-        shipper.distance_receive = request.data.get('distance_receive')
-        shipper.avatar_url = request.data.get('avatar_url')
-        shipper.save()
-        response = {
-            "status": "success",
-            "data": ShipperSerializer(shipper).data,
-            "detail": None
-        }
-        return Response(response, status=status.HTTP_200_OK)
+        try:
+            shipper = Shipper.objects.get(
+                account__phone_number=request.user.phone_number)
+            shipper.distance_receive = request.data.get(
+                'distance_receive', shipper.distance_receive)
+            shipper.avatar_url = request.data.get(
+                'avatar_url', shipper.avatar_url)
+            shipper.birth_date = request.data.get('birth_date')
+            shipper.save()
+            response = {
+                "status": "success",
+                "data": ShipperSerializer(shipper).data,
+                "detail": None
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        except:
+            response = {
+                "status": "error",
+                "data": None,
+                "detail": "Dữ liệu cập nhập không hợp lệ"
+            }
+            return Response(response, status=status.HTTP_200_OK)
 
 
 class CustomerViewSet(GenericAPIView):
@@ -349,7 +362,7 @@ class UserDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(manual_parameters=[
-        openapi.Parameter('phone_number',in_= openapi.IN_QUERY,description='phone_number',type=openapi.TYPE_STRING)])
+        openapi.Parameter('phone_number', in_=openapi.IN_QUERY, description='phone_number', type=openapi.TYPE_STRING)])
     def get(self, request, *args, **kwargs):
         phone_number = request.query_params.get('phone_number')
         account = Account.objects.filter(phone_number=phone_number)
@@ -389,7 +402,8 @@ class RatingShipper(GenericAPIView):
         orders = list(Order.objects.filter(shipper_id=shipper_id))
         list_point = []
         for order in orders:
-            if order.rate: list_point.append(order.rate.rate)
+            if order.rate:
+                list_point.append(order.rate.rate)
         response = {
             "status": "success",
             "data": mean(list_point) if len(list_point) else "Chưa có thông tin đánh giá về tài xế",
@@ -404,20 +418,20 @@ class ListRateShipper(GenericAPIView):
     serializer_class = RateSerializer
 
     def get(self, request, shipper_id):
-        data = Rate.objects.filter(order__shipper_id=shipper_id)
-        rates = list(data)
+        orders = Order.objects.filter(shipper_id=shipper_id)
         list_point = []
-        for rate in rates:
-            list_point.append(rate.rate)
+        rates = []
+        for order in orders:
+            if order.rate:
+                list_point.append(order.rate.rate)
+                rates.append(order.rate)
 
         response = {
             "status": "success",
             "data": {"mean": mean(list_point),
                      "len": len(list_point),
-                     "rates": RateSerializer(data, many=True).data
-                     }
-            if len(list_point)
-            else "Chưa có thông tin đánh giá về tài xế",
+                     "rates": RateSerializer(rates, many=True).data
+                     } if len(list_point) else "Chưa có thông tin đánh giá về tài xế",
             "detail": None
         }
         return Response(response, status=status.HTTP_202_ACCEPTED)
