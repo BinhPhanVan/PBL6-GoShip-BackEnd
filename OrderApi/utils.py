@@ -1,5 +1,5 @@
 from PriceApi.models import Price
-
+from UserApi.models import Shipper
 
 def get_price(distance, is_protected):        
     price =  Price.objects.first()
@@ -19,3 +19,8 @@ def get_price(distance, is_protected):
     if is_protected == 1:
         extra_price =  money * (price.price_protect / 100)
     return money + extra_price
+
+def check_shipper(phone_number):
+    if Shipper.objects.filter(account__phone_number=phone_number).exists():
+        return Shipper.objects.get(account__phone_number=phone_number)
+    return None

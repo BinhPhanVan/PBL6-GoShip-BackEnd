@@ -21,7 +21,7 @@ from django.core.paginator import Paginator
 from rest_framework.authentication import SessionAuthentication
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .utils import get_price
+from .utils import *
 from BaseApi.FirebaseManager import sendNotificationUser
 from django.db.models import Q
 
@@ -99,7 +99,7 @@ class StatusView(viewsets.ViewSet,
 class OrderView(GenericAPIView):
     queryset = Order.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = OrderSerializer
+    serializer_class = OrderShipperSerializer
     pagination_class = BasePagination
 
     def get(self, request):
@@ -130,7 +130,7 @@ class OrderView(GenericAPIView):
 
     def post(self, request):
         try:
-            serializer = OrderSerializer(data=request.data)
+            serializer = OrderShipperSerializer(data=request.data)
             if serializer.is_valid():
                 order = Order(
                     customer=Customer.objects.filter(
@@ -153,8 +153,13 @@ class OrderView(GenericAPIView):
                     status=Status.objects.filter(id=1).first()
                 )
                 order.save()
-                firebase_database.sendNotificationToShipper(lat=float(
-                    order.address_start.latitude), long=float(order.address_start.longitude), order_id=order.id)
+                shipper_find = check_shipper(request.data.get('shipper'))
+                if shipper_find:
+                    print(shipper_find.account.token_device)
+                    firebase_database.sendNotificationUser(shipper_find.account.token_device, request.data.get('shipper'),  order_id=order.id, type = 1)
+                else:
+                    firebase_database.sendNotificationToShipper(lat=float(
+                        order.address_start.latitude), long=float(order.address_start.longitude), order_id=order.id)
                 response = {
                     "status": "success",
                     "data":  OrderSerializer(order).data,
@@ -501,7 +506,7 @@ class RateDetailView(GenericAPIView):
                     "data":  RateSerializer(order.rate).data,
                     "detail": None
                 }
-                return Response(response, status=status.HTTP_202_ACCEPTED)
+                return Response(response, status=status.HTTP_200_OK)
             else:
                 response = {
                     "status": "error",

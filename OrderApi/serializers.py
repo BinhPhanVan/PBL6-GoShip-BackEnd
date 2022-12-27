@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import Payment, Category, Status, Order, Rate
 from UserApi.serializers import AddressSerializer
 from UserApi.serializers import ShipperSerializer, CustomerSerializer
-from UserApi.models import Customer
+from UserApi.models import *
 from AccountApi.models import Account
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -45,6 +45,12 @@ class CustomerOrderSerializer(serializers.ModelSerializer):
         model = Customer
         fields = '__all__'
 
+
+class ShipperOrderSerializer(serializers.ModelSerializer):
+    account = PhoneNumberSerializer(required = True)
+    class Meta:
+        model = Shipper
+        fields = '__all__'
 
 class RateSerializer(serializers.Serializer):
     feedback = serializers.CharField(default = 'Good job')
@@ -90,6 +96,16 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             },
         }
 
+class OrderShipperSerializer(serializers.Serializer):
+    address_start = AddressSerializer(required=True)
+    address_end = AddressSerializer(required=True)
+    shipper = serializers.CharField(required=False)
+    description = serializers.CharField(required=True)
+    distance = serializers.IntegerField(required=True)
+    customer_notes = serializers.CharField(required=True)
+    img_order = serializers.CharField(required=True)
+    payment = serializers.IntegerField(required=True)
+    category = serializers.IntegerField(required=True)
 
 class OrderSerializer(serializers.ModelSerializer):
     address_start = AddressSerializer(required=True)
@@ -108,9 +124,6 @@ class OrderSerializer(serializers.ModelSerializer):
                 'read_only': True
             },
             'updated_at': {
-                'read_only': True
-            },
-            'shipper': {
                 'read_only': True
             },
             'cost': {
