@@ -171,13 +171,13 @@ class OrderView(GenericAPIView):
                 "detail": "Vị trí kinh độ và vĩ độ phải dưới dạng số thực!",
             }
             return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
-        # except:
-        #     response = {
-        #         "status": "error",
-        #         "data": None,
-        #         "detail": "Dữ liệu không hợp lệ!",
-        #     }
-        #     return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
+        except:
+            response = {
+                "status": "error",
+                "data": None,
+                "detail": "Dữ liệu không hợp lệ!",
+            }
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
 
 class OrderDetailView(GenericAPIView):
