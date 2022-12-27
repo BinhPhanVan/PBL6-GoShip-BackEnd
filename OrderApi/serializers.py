@@ -136,3 +136,7 @@ class PaySerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
     order_desc = serializers.CharField()
 
+class RateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Rate
+        fields = '__all__'

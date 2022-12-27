@@ -10,6 +10,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(account)
         token['role'] = account.role
         token['phone_number'] = account.phone_number
+        token['avatar_url'] = Shipper.objects.get(account__phone_number = account.phone_number).avatar_url if account.role == 2 else Customer.objects.get(account__phone_number = account.phone_number).avatar_url
         return token
 
 
