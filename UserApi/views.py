@@ -6,6 +6,7 @@ from rest_framework import status, permissions
 from .serializers import *
 from BaseApi.permissions import *
 from .models import Account, Address, Shipper, Customer
+from OrderApi.models import Order
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.contrib.auth.hashers import check_password
@@ -385,11 +386,10 @@ class RatingShipper(GenericAPIView):
     serializer_class = RateSerializer
 
     def get(self, request, shipper_id):
-        rates = list(Rate.objects.filter(order__shipper_id=shipper_id))
+        orders = list(Order.objects.filter(shipper_id=shipper_id))
         list_point = []
-        for rate in rates:
-            list_point.append(rate.rate)
-
+        for order in orders:
+            if order.rate: list_point.append(order.rate.rate)
         response = {
             "status": "success",
             "data": mean(list_point) if len(list_point) else "Chưa có thông tin đánh giá về tài xế",

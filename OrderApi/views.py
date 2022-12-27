@@ -498,7 +498,7 @@ class RateDetailView(GenericAPIView):
             if order.customer.account.phone_number == request.user.phone_number or order.shipper.account.phone_number == request.user.phone_number:
                 response = {
                     "status": "success",
-                    "data":  OrderDetailSerializer(order).data,
+                    "data":  RateSerializer(order.rate).data,
                     "detail": None
                 }
                 return Response(response, status=status.HTTP_202_ACCEPTED)
