@@ -130,48 +130,40 @@ class OrderView(GenericAPIView):
 
     def post(self, request):
         try:
-            serializer = OrderShipperSerializer(data=request.data)
-            if serializer.is_valid():
-                order = Order(
-                    customer=Customer.objects.filter(
-                        account__phone_number=request.user.phone_number).first(),
-                    address_start=Address.objects.create(
-                        **request.data.get('address_start')),
-                    address_end=Address.objects.create(
-                        **request.data.get('address_end')),
-                    distance=serializer.validated_data.get('distance'),
-                    customer_notes=serializer.validated_data.get(
-                        'customer_notes'),
-                    img_order=serializer.validated_data.get('img_order'),
-                    payment=Payment.objects.filter(
-                        id=request.data.get('payment')).first(),
-                    category=Category.objects.filter(
-                        id=request.data.get('category')).first(),
-                    cost=get_price(serializer.validated_data.get('distance'), Category.objects.filter(
-                        id=request.data.get('category')).first().is_protected),
-                    description=serializer.validated_data.get('description'),
-                    status=Status.objects.filter(id=1).first()
-                )
-                order.save()
-                shipper_find = check_shipper(request.data.get('shipper'))
-                if shipper_find:
-                    print(shipper_find.account.token_device)
-                    firebase_database.sendNotificationUser(shipper_find.account.token_device, request.data.get('shipper'),  order_id=order.id, type = 1)
-                else:
-                    firebase_database.sendNotificationToShipper(lat=float(
-                        order.address_start.latitude), long=float(order.address_start.longitude), order_id=order.id)
-                response = {
-                    "status": "success",
-                    "data":  OrderSerializer(order).data,
-                    "detail": None
-                }
-                return Response(response, status=status.HTTP_200_OK)
+            order = Order(
+                customer=Customer.objects.filter(
+                    account__phone_number=request.user.phone_number).first(),
+                address_start=Address.objects.create(
+                    **request.data.get('address_start')),
+                address_end=Address.objects.create(
+                    **request.data.get('address_end')),
+                distance=request.data.get('distance'),
+                customer_notes=request.data.get(
+                    'customer_notes'),
+                img_order=request.data.get('img_order',None),
+                payment=Payment.objects.filter(
+                    id=request.data.get('payment')).first(),
+                category=Category.objects.filter(
+                    id=request.data.get('category')).first(),
+                cost=get_price(request.data.get('distance'), Category.objects.filter(
+                    id=request.data.get('category')).first().is_protected),
+                description=request.data.get('description', None),
+                status=Status.objects.filter(id=1).first()
+            )
+            order.save()
+            shipper_find = check_shipper(request.data.get('shipper'))
+            if shipper_find:
+                print(shipper_find.account.token_device)
+                firebase_database.sendNotificationUser(shipper_find.account.token_device, request.data.get('shipper'),  order_id=order.id, type = 1)
+            else:
+                firebase_database.sendNotificationToShipper(lat=float(
+                    order.address_start.latitude), long=float(order.address_start.longitude), order_id=order.id)
             response = {
-                "status": "error",
-                "data": None,
-                "detail": "Dữ liệu không hợp lệ!",
+                "status": "success",
+                "data":  OrderSerializer(order).data,
+                "detail": None
             }
-            return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
+            return Response(response, status=status.HTTP_200_OK)
         except ValueError as err:
             response = {
                 "status": "error",
@@ -179,6 +171,13 @@ class OrderView(GenericAPIView):
                 "detail": "Vị trí kinh độ và vĩ độ phải dưới dạng số thực!",
             }
             return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
+        # except:
+        #     response = {
+        #         "status": "error",
+        #         "data": None,
+        #         "detail": "Dữ liệu không hợp lệ!",
+        #     }
+        #     return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
 
 class OrderDetailView(GenericAPIView):

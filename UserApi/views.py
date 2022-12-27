@@ -243,7 +243,7 @@ class CustomerViewSet(GenericAPIView):
     def put(self, request):
         customer = Customer.objects.filter(
             account__phone_number=request.user.phone_number)
-        address = request.data.get('address')
+        address = request.data.get('address', None)
         if customer.exists():
             if customer.first().address is None:
                 address = Address.objects.create(**request.data.get('address'))
