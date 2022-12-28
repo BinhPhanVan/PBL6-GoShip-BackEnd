@@ -18,10 +18,11 @@ class Notification(models.Model):
         (1, 'Có đơn hàng gần đây'),
         (2,'Tài xế đã nhận đơn hàng'),
         (3,'Đơn hàng của bạn đang được vận chuyển'),
-        (4,'Đơn hàng đã được huỷ'),
+        (4,'Gửi thông báo huỷ đơn hàng cho customer'),
         (5,'Vui lòng xác nhận hoàn thành đơn hàng'),
         (6,'Hoàn thành đơn hàng'),
         (7,'Đánh giá đơn hàng'),
+        (8,'Gửi thông báo huỷ đơn hàng cho shipper'),
     )   
     type = models.IntegerField(choices= list_choices, null=True, blank=True)
     def __str__(self):

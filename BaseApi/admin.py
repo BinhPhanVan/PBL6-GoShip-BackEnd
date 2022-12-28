@@ -4,5 +4,5 @@ from .models import Notification
 
 class NotificationCustom(admin.ModelAdmin):
     list_display = ['id', 'title', 'body']
-    readonly_fields = ['type']
+
 admin.site.register(Notification,NotificationCustom)
