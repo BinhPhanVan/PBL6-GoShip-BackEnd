@@ -241,7 +241,7 @@ class CustomerViewSet(GenericAPIView):
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
     def patch(self, request):
-        # try:
+        try:
             customer = Customer.objects.filter(
                 account__phone_number=request.user.phone_number)
             address = request.data.get('address', None)
@@ -269,14 +269,14 @@ class CustomerViewSet(GenericAPIView):
                     "detail": None
                 }
                 return Response(response, status=status.HTTP_200_OK)
-            # else: raise Exception
-        # except:
-        #     response = {
-        #         "status": "error",
-        #         "data": None,
-        #         "detail": "Dữ liệu không hợp lệ!"
-        #     }
-        #     return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
+            else: raise Exception
+        except:
+            response = {
+                "status": "error",
+                "data": None,
+                "detail": "Dữ liệu không hợp lệ!"
+            }
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
 
 class UpdateDeviceTokenView(GenericAPIView):
