@@ -180,6 +180,52 @@ class OrderView(GenericAPIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
 
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter('order_id', in_=openapi.IN_QUERY, description='Order ID', type=openapi.TYPE_INTEGER)])
+    def delete(self, request):
+        try:
+            order = Order.objects.filter(
+                        (Q(shipper__account__phone_number=request.user.phone_number) | 
+                        Q(customer__account__phone_number=request.user.phone_number) ) &
+                        Q(id = int(request.query_params.get('order_id'))))
+            account = Account.objects.get(phone_number = request.user.phone_number)
+            if order.exists():
+                order = order.first()
+                if order.status == Status.objects.get(id = 1) or order.status == Status.objects.get(id = 2):
+                    status_old = order.status
+                    order.status = Status.objects.get(id = 4)
+                    order.save()
+                    response = {
+                        "status": "success",
+                        "data": "Đơn hàng đã được huỷ thành công!",
+                        "detail": None,
+                    }
+                    if status_old == Status.objects.get(id = 2):
+                        if account.role == 1 :   
+                            account_shipper = Account.objects.get(phone_number = order.shipper.account.phone_number)
+                            sendNotificationUser(account_shipper.token_device, account_shipper.phone_number, order.id, 4)
+                        else:
+                            account_customer = Account.objects.get(phone_number = order.customer.account.phone_number)
+                            sendNotificationUser(account_customer.token_device, account_customer.phone_number, order.id, 4)
+
+                    return Response(status=status.HTTP_200_OK, data=response)
+                else:
+                    response = {
+                        "status": "error",
+                        "data": None,
+                        "detail": "Trạng thái đơn hàng không hỗ trợ hành động này!",
+                    }
+                    return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
+            else:
+                raise Exception
+        except:
+            response = {
+                        "status": "error",
+                        "data": None,
+                        "detail": "Đây không phải là đơn hàng của bạn!",
+                    }
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
+
 class OrderDetailView(GenericAPIView):
     queryset = Order.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -292,7 +338,7 @@ class OrderReceiveView(GenericAPIView):
                 response = {
                     "status": "error",
                     "data": None,
-                    "detail": "Đơn hàng đã có người nhận!"
+                    "detail": "Trạng thái đơn hàng không hỗ trợ hành động này!"
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
         response = {
@@ -467,6 +513,11 @@ class RatingOrder(GenericAPIView):
                         "data":  OrderDetailSerializer(order).data,
                         "detail": None
                     }
+                    shipper_phone_number = order.shipper.account.phone_number
+                    account = Account.objects.get(
+                        phone_number=shipper_phone_number)
+                    sendNotificationUser(
+                        account.token_device, shipper_phone_number, order.id, 7)
                     return Response(response, status=status.HTTP_202_ACCEPTED)
                 else:
                     response = {
@@ -585,3 +636,4 @@ class PayOrder(GenericAPIView):
                 "data": "",
                 "detail": "Đơn hàng không hợp lệ!"
             }, status=status.HTTP_400_BAD_REQUEST)
+
