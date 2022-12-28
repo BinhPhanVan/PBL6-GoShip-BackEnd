@@ -41,7 +41,7 @@ firebase_admin.initialize_app(
 
 def sendPush(title, msg, registration_token, phone_numbers, dataObject=None):
     # See documentation on defining a message payload.
-    current_time = str(round(time.time() * 1000))[:-3]
+    current_time = str(round(time.time()*1000))[:-2]
     dataObject["time"] = current_time
     reference = db.reference('/')
     print(registration_token)
