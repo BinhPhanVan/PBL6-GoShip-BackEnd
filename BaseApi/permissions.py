@@ -14,6 +14,7 @@ class IsAdminPermission(BasePermission):
             print(str(Exception))
             return False
 
+
 class IsShipperPermission(BasePermission):
     def has_permission(self, request, view):
         try:
@@ -24,6 +25,8 @@ class IsShipperPermission(BasePermission):
         except Exception:
             print(str(Exception))
             return False
+
+
 class IsCustomerPermission(BasePermission):
     def has_permission(self, request, view):
         try:
