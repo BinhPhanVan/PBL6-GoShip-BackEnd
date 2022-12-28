@@ -25,6 +25,7 @@ from .utils import *
 from BaseApi.FirebaseManager import sendNotificationUser
 from django.db.models import Q
 
+
 class PaymentView(viewsets.ViewSet,
                   generics.ListCreateAPIView,
                   generics.CreateAPIView,
@@ -140,7 +141,7 @@ class OrderView(GenericAPIView):
                 distance=request.data.get('distance'),
                 customer_notes=request.data.get(
                     'customer_notes'),
-                img_order=request.data.get('img_order',None),
+                img_order=request.data.get('img_order', None),
                 payment=Payment.objects.filter(
                     id=request.data.get('payment')).first(),
                 category=Category.objects.filter(
@@ -154,7 +155,8 @@ class OrderView(GenericAPIView):
             shipper_find = check_shipper(request.data.get('shipper'))
             if shipper_find:
                 print(shipper_find.account.token_device)
-                firebase_database.sendNotificationUser(shipper_find.account.token_device, request.data.get('shipper'),  order_id=order.id, type = 1)
+                firebase_database.sendNotificationUser(
+                    shipper_find.account.token_device, request.data.get('shipper'),  order_id=order.id, type=1)
             else:
                 firebase_database.sendNotificationToShipper(lat=float(
                     order.address_start.latitude), long=float(order.address_start.longitude), order_id=order.id)
@@ -179,34 +181,38 @@ class OrderView(GenericAPIView):
             }
             return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
-
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter('order_id', in_=openapi.IN_QUERY, description='Order ID', type=openapi.TYPE_INTEGER)])
     def delete(self, request):
         try:
             order = Order.objects.filter(
-                        (Q(shipper__account__phone_number=request.user.phone_number) | 
-                        Q(customer__account__phone_number=request.user.phone_number) ) &
-                        Q(id = int(request.query_params.get('order_id'))))
-            account = Account.objects.get(phone_number = request.user.phone_number)
+                (Q(shipper__account__phone_number=request.user.phone_number) |
+                 Q(customer__account__phone_number=request.user.phone_number)) &
+                Q(id=int(request.query_params.get('order_id'))))
+            account = Account.objects.get(
+                phone_number=request.user.phone_number)
             if order.exists():
                 order = order.first()
-                if order.status == Status.objects.get(id = 1) or order.status == Status.objects.get(id = 2):
+                if order.status == Status.objects.get(id=1) or order.status == Status.objects.get(id=2):
                     status_old = order.status
-                    order.status = Status.objects.get(id = 4)
+                    order.status = Status.objects.get(id=4)
                     order.save()
                     response = {
                         "status": "success",
                         "data": "Đơn hàng đã được huỷ thành công!",
                         "detail": None,
                     }
-                    if status_old == Status.objects.get(id = 2):
-                        if account.role == 1 :   
-                            account_shipper = Account.objects.get(phone_number = order.shipper.account.phone_number)
-                            sendNotificationUser(account_shipper.token_device, account_shipper.phone_number, order.id, 4)
+                    if status_old == Status.objects.get(id=2):
+                        if account.role == 1:
+                            account_shipper = Account.objects.get(
+                                phone_number=order.shipper.account.phone_number)
+                            sendNotificationUser(
+                                account_shipper.token_device, account_shipper.phone_number, order.id, 8)
                         else:
-                            account_customer = Account.objects.get(phone_number = order.customer.account.phone_number)
-                            sendNotificationUser(account_customer.token_device, account_customer.phone_number, order.id, 4)
+                            account_customer = Account.objects.get(
+                                phone_number=order.customer.account.phone_number)
+                            sendNotificationUser(
+                                account_customer.token_device, account_customer.phone_number, order.id, 4)
 
                     return Response(status=status.HTTP_200_OK, data=response)
                 else:
@@ -220,11 +226,12 @@ class OrderView(GenericAPIView):
                 raise Exception
         except:
             response = {
-                        "status": "error",
-                        "data": None,
-                        "detail": "Đây không phải là đơn hàng của bạn!",
-                    }
+                "status": "error",
+                "data": None,
+                "detail": "Đây không phải là đơn hàng của bạn!",
+            }
             return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
+
 
 class OrderDetailView(GenericAPIView):
     queryset = Order.objects.all()
@@ -274,7 +281,7 @@ class OrderStatusView(GenericAPIView):
                 "detail": "status_id không tồn tại"
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
-            
+
         if status_id != -1:
             if request.user.role == 1:
                 orders = Order.objects.filter(
@@ -284,7 +291,7 @@ class OrderStatusView(GenericAPIView):
                     status_id=status_id, shipper__account__phone_number=request.user.phone_number).order_by('-created_at')
         else:
             orders = Order.objects.filter(
-                    Q(shipper__account__phone_number=request.user.phone_number) | Q(customer__account__phone_number=request.user.phone_number)).order_by('-created_at')
+                Q(shipper__account__phone_number=request.user.phone_number) | Q(customer__account__phone_number=request.user.phone_number)).order_by('-created_at')
         paginator = Paginator(orders, 5)
         response = {
             "status": "success",
@@ -636,4 +643,3 @@ class PayOrder(GenericAPIView):
                 "data": "",
                 "detail": "Đơn hàng không hợp lệ!"
             }, status=status.HTTP_400_BAD_REQUEST)
-
