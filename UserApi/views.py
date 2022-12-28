@@ -192,7 +192,7 @@ class ShipperUpdateSerializer(GenericAPIView):
     permission_classes = [permissions.IsAuthenticated, IsShipperPermission]
     serializer_class = ShipperUpdateSerializer
 
-    def put(self, request):
+    def patch(self, request):
         try:
             shipper = Shipper.objects.get(
                 account__phone_number=request.user.phone_number)
@@ -240,40 +240,43 @@ class CustomerViewSet(GenericAPIView):
         }
         return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
-    def put(self, request):
-        customer = Customer.objects.filter(
-            account__phone_number=request.user.phone_number)
-        address = request.data.get('address', None)
-        if customer.exists():
-            if customer.first().address is None:
-                address = Address.objects.create(**request.data.get('address'))
-                customer.update(address=address)
-            else:
-                Address.objects.filter(id=customer.first().address.id).update(
-                    address_notes=address.get('address_notes'),
-                    latitude=address.get('latitude'),
-                    longitude=address.get('longitude'),
-                )
-            customer.update(
-                name=request.data.get('name'),
-                gender=request.data.get('gender'),
-                avatar_url=request.data.get('avatar_url'),
-                distance_view=request.data.get('distance_view'),
-                birth_date=request.data.get('birth_date'),
-            )
-            response = {
-                "status": "success",
-                "data": CustomerSerializer(customer.first()).data,
-                "detail": None
-            }
-            return Response(response, status=status.HTTP_200_OK)
-
-        response = {
-            "status": "error",
-            "data": None,
-            "detail": "Dữ liệu không hợp lệ!"
-        }
-        return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
+    def patch(self, request):
+        # try:
+            customer = Customer.objects.filter(
+                account__phone_number=request.user.phone_number)
+            address = request.data.get('address', None)
+            if customer.exists():
+                customer =  customer.first()
+                if request.data.get('address') is not None:
+                    if customer.address is None:
+                        address = Address.objects.create(**request.data.get('address'))
+                        customer.address= address
+                    else:
+                        Address.objects.filter(id=customer.address.id).update(
+                            address_notes=address.get('address_notes'),
+                            latitude=address.get('latitude'),
+                            longitude=address.get('longitude'),
+                        )
+                customer.name = request.data.get('name', customer.name)
+                customer.gender=request.data.get('gender',customer.gender)
+                customer.avatar_url=request.data.get('avatar_url',customer.avatar_url)
+                customer.distance_view=request.data.get('distance_view',customer.distance_view)
+                customer.birth_date=request.data.get('birth_date',customer.birth_date)
+                customer.save()
+                response = {
+                    "status": "success",
+                    "data": CustomerSerializer(customer).data,
+                    "detail": None
+                }
+                return Response(response, status=status.HTTP_200_OK)
+            # else: raise Exception
+        # except:
+        #     response = {
+        #         "status": "error",
+        #         "data": None,
+        #         "detail": "Dữ liệu không hợp lệ!"
+        #     }
+        #     return Response(status=status.HTTP_400_BAD_REQUEST, data=response)
 
 
 class UpdateDeviceTokenView(GenericAPIView):
@@ -454,5 +457,27 @@ class ShipperInfoViewSet(APIView):
             "status": "error",
             "data": None,
             "detail": "shipper_id không hợp lệ!"
+        }
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+class AccountCheck(APIView):
+    queryset = Account.objects.all()
+    permission_classes = [permissions.AllowAny]
+
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter('phone_number', in_=openapi.IN_QUERY, description='phone_number', type=openapi.TYPE_STRING)])
+    def get(self, request, *args, **kwargs):
+        account = Account.objects.filter(phone_number= request.query_params.get('phone_number'))
+        if account.exists():
+            response = {
+                "status": "success",
+                "data": "Tài khoản đã tồn tại!",
+                "detail": None
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        response = {
+            "status": "error",
+            "data": None,
+            "detail": "Tài khoản chưa tồn tại"
         }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)

@@ -23,6 +23,7 @@ urlpatterns = [
     path("user/change-password/", ChangePassword.as_view(), name="change-password"),
     path("user/logout/", Logout.as_view(), name="logout"),
     path("user/update-device-token/", UpdateDeviceTokenView.as_view(), name="update-device-token"),
-    path("user/get-info/", UserDetailView.as_view(), name="get-info")
+    path("user/get-info/", UserDetailView.as_view(), name="get-info"),
+    path("user/check/", AccountCheck.as_view(), name="check-account")
 ]
 urlpatterns += router.urls
